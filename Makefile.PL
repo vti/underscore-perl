@@ -14,6 +14,10 @@ license 'artistic_2';
 perl_version '5.008007';
 
 requires 'List::Util';
+requires 'List::MoreUtils';
+requires 'B';
+
+build_requires 'Test::Spec';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 
