@@ -441,6 +441,13 @@ describe 'min' => sub {
     #};
 };
 
+describe 'sort' => sub {
+    it 'sorts regularly' => sub {
+        my $list = [3, 2, 1];
+        is_deeply(_($list)->sort, [1, 2, 3]);
+    };
+};
+
 describe 'sortBy' => sub {
     it 'stooges sorted by age' => sub {
         my $people =

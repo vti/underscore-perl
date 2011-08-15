@@ -219,6 +219,13 @@ sub min {
     return List::Util::min(map { $iterator->($_) } @$list);
 }
 
+sub sort : method {
+    my $self = shift;
+    my ($list) = $self->_prepare(@_);
+
+    return [sort @$list];
+}
+
 sub sortBy {&sort_by}
 
 sub sort_by {
