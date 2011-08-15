@@ -68,10 +68,9 @@ describe 'bind' => sub {
             _->bind($func, '', '')->();
         };
 
-        # TODO false
-        #it 'can bind a function to false' => sub {
-        #    _->bind($func, false, false)->();
-        #};
+        it 'can bind a function to false' => sub {
+            _->bind($func, _->false, _->false)->();
+        };
     };
 };
 

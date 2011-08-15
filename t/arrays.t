@@ -1,6 +1,3 @@
-#
-#});
-
 use strict;
 use warnings;
 
@@ -74,15 +71,13 @@ describe 'last' => sub {
 describe 'compact' => sub {
     it 'can trim out all falsy values' => sub {
 
-        # TODO false
-        is(@{_->compact([0, 1, '', 2, '', 3])}, 3);
+        is(@{_->compact([0, 1, _->false, 2, '', 3])}, 3);
     };
 
     it 'works on an arguments object' => sub {
         my $cb = sub { _([@_])->compact };
 
-        # TODO false
-        my $result = $cb->(0, 1, '', 2, '', 3);
+        my $result = $cb->(0, 1, _->false, 2, '', 3);
         is(scalar @$result, 3);
     };
 };
@@ -125,10 +120,9 @@ describe 'uniq' => sub {
         is(join(', ', @{_->uniq($list)}), '1, 2, 3, 4');
     };
 
-    # TODO true
     it 'can find the unique values of a sorted array faster' => sub {
         my $list = [1, 1, 1, 2, 2, 3];
-        is(join(', ', @{_->uniq($list, 1)}), '1, 2, 3',);
+        is(join(', ', @{_->uniq($list, _->true)}), '1, 2, 3',);
     };
 
     it 'works on an arguments object' => sub {
@@ -179,10 +173,10 @@ describe 'zip' => sub {
     it 'zipped together arrays of different lengths' => sub {
         my $names = ['moe', 'larry', 'curly'];
         my $ages  = [30,    40,      50];
-        my $leaders = [1];                               # TODO true
+        my $leaders = [_->true];
         my $stooges = _->zip($names, $ages, $leaders);
         is_deeply($stooges,
-            ['moe', 30, 1, 'larry', 40, undef, 'curly', 50, undef]);
+            ['moe', 30, _->true, 'larry', 40, undef, 'curly', 50, undef]);
     };
 };
 
@@ -206,21 +200,21 @@ describe 'indexOf' => sub {
     it '35 is not in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 35;
-        my $index   = _->indexOf($numbers, $num, 1);    # TODO true AND sorted
+        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
         is($index, -1);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 40;
-        my $index   = _->indexOf($numbers, $num, 1);    # TODO true AND sorted
+        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
         is($index, 3);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [1, 40, 40, 40, 40, 40, 40, 40, 50, 60, 70];
         my $num = 40;
-        my $index = _->indexOf($numbers, $num, 1);      # TODO true AND sorted
+        my $index = _->indexOf($numbers, $num, _->true);      # TODO sorted
         is($index, 1);
     };
 };

@@ -12,6 +12,7 @@ our @EXPORT_OK = qw(_);
 use B               ();
 use List::MoreUtils ();
 use List::Util      ();
+use Scalar::Util    ();
 
 our $UNIQUE_ID = 0;
 
@@ -32,6 +33,9 @@ sub new {
 
     return $self;
 }
+
+sub true  { Underscore::_True->new }
+sub false { Underscore::_False->new }
 
 sub forEach {&each}
 
@@ -818,6 +822,20 @@ sub is_undefined {
     return 0;
 }
 
+sub isBoolean {&is_boolean}
+
+sub is_boolean {
+    my $self = shift;
+    my ($object) = @_;
+
+    return 1
+      if Scalar::Util::blessed($object)
+          && (   $object->isa('Underscore::_True')
+              || $object->isa('Underscore::_False'));
+
+    return 0;
+}
+
 sub chain {
     my $self = shift;
 
@@ -846,5 +864,23 @@ sub _finalize {
       : wantarray      ? @_
       :                  $_[0];
 }
+
+package Underscore::_True;
+
+use overload '""'   => sub {'true'}, fallback => 1;
+use overload 'bool' => sub {1},      fallback => 1;
+use overload 'eq' => sub { $_[1] eq 'true' ? 1 : 0; }, fallback => 1;
+use overload '==' => sub { $_[1] == 1 ? 1 : 0; }, fallback => 1;
+
+sub new { bless {}, $_[0] }
+
+package Underscore::_False;
+
+use overload '""'   => sub {'false'}, fallback => 1;
+use overload 'bool' => sub {0},       fallback => 1;
+use overload 'eq' => sub { $_[1] eq 'false' ? 1 : 0; }, fallback => 1;
+use overload '==' => sub { $_[1] == 0 ? 1 : 0; }, fallback => 1;
+
+sub new { bless {}, $_[0] }
 
 1;

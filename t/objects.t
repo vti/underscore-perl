@@ -25,8 +25,10 @@ describe 'keys' => sub {
         ok $@;
     };
 
-    # TODO boolean
-    #it 'throws an error for boolean primitives' => sub {};
+    it 'throws an error for boolean primitives' => sub {
+        eval {_->keys(_->true)};
+        ok $@;
+    };
 };
 
 describe 'values' => sub {
@@ -181,20 +183,17 @@ describe 'isNumber' => sub {
     };
 };
 
-# TODO
-#  test("objects: isBoolean", function() {
-#    ok(!_.isBoolean(2), 'a number is not a boolean');
-#    ok(!_.isBoolean("string"), 'a string is not a boolean');
-#    ok(!_.isBoolean("false"), 'the string "false" is not a boolean');
-#    ok(!_.isBoolean("true"), 'the string "true" is not a boolean');
-#    ok(!_.isBoolean(arguments), 'the arguments object is not a boolean');
-#    ok(!_.isBoolean(undefined), 'undefined is not a boolean');
-#    ok(!_.isBoolean(NaN), 'NaN is not a boolean');
-#    ok(!_.isBoolean(null), 'null is not a boolean');
-#    ok(_.isBoolean(true), 'but true is');
-#    ok(_.isBoolean(false), 'and so is false');
-#    ok(_.isBoolean(iBoolean), 'even from another frame');
-#  });
+describe 'isBoolean' => sub {
+    it 'should check if value is boolean' => sub {
+        ok(!_->isBoolean(2),        'a number is not a boolean');
+        ok(!_->isBoolean("string"), 'a string is not a boolean');
+        ok(!_->isBoolean("false"),  'the string "false" is not a boolean');
+        ok(!_->isBoolean("true"),   'the string "true" is not a boolean');
+        ok(!_->isBoolean(undef),    'undefined is not a boolean');
+        ok(_->isBoolean(_->true),   'but true is');
+        ok(_->isBoolean(_->false),  'and so is false');
+    };
+};
 
 describe 'isFunction' => sub {
     it 'should check if value is a function' => sub {
@@ -214,7 +213,7 @@ describe 'isRegExp' => sub {
 describe 'isUndefined' => sub {
     it 'should check if value is undefined' => sub {
         ok(!_->isUndefined(1), 'numbers are defined');
-        #ok(!_->isUndefined(false), 'false is defined'); TODO false
+        ok(!_->isUndefined(_->false), 'false is defined');
         ok(!_->isUndefined(0), '0 is defined');
         ok(_->isUndefined(), 'nothing is undefined');
         ok(_->isUndefined(undef), 'undefined is undefined');
