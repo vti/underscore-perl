@@ -306,7 +306,7 @@ describe 'all' => sub {
 
     it 'even numbers' => sub {
         ok( _->all(
-                [0, 10, 28] => sub { my ($num) = @_; return $num % 2 == 0 }
+                [0, 10, 28] => sub { $_ % 2 == 0 }
             )
         );
     };
@@ -459,12 +459,13 @@ describe 'sortBy' => sub {
     };
 };
 
-#describe 'groupBy' => sub {
-#    it 'put each even number in the right group' => sub {
-#        my $parity = _->groupBy([1, 2, 3, 4, 5, 6], sub { my ($num) = @_; return $num % 2; });
-#        is(join(', ', @{$parity->[0]}), '2, 4, 6');
-#    };
-#};
+describe 'groupBy' => sub {
+    it 'put each even number in the right group' => sub {
+        my $parity = _->groupBy([1, 2, 3, 4, 5, 6],
+            sub { my ($num) = @_; return $num % 2; });
+        is(join(', ', @{$parity->{0}}), '2, 4, 6');
+    };
+};
 
 describe 'sortedIndex' => sub {
     it '35 should be inserted at index 3' => sub {

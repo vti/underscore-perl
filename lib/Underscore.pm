@@ -281,7 +281,18 @@ sub group_by {
     my $self = shift;
     my ($list, $iterator) = $self->_prepare(@_);
 
-    # TODO
+    my $result = {};
+    foreach (@{$list}) {
+        my $group = $iterator->($_);
+        if (exists $result->{$group}) {
+            push @{$result->{$group}}, $_;
+        }
+        else {
+            $result->{$group} = [$_];
+        }
+    }
+
+    return $self->_finalize($result);
 }
 
 sub sortedIndex {&sorted_index}
