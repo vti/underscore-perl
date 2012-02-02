@@ -902,3 +902,87 @@ use overload '==' => sub { $_[1] == 0 ? 1 : 0; }, fallback => 1;
 sub new { bless {}, $_[0] }
 
 1;
+__END__
+
+=head1 NAME
+
+Underscore
+
+=head1 SYNOPSIS
+
+    use Underscore;
+
+    _([3, 2, 1])->sort;
+
+=head1 DESCRIPTION
+
+L<Underscore> Perl is a clone of a popular JavaScript library
+L<http://github.com/documentcloud/underscore|Underscore.js>. Why? Because Perl
+is awesome. And because we can!
+
+This document describes the differences. For the full introduction see original
+page of L<http://documentcloud.github.com/underscore/|Underscore.js>.
+
+The test suite is compatible with the original one, except for those functions
+that were not ported.
+
+=head2 The main differences
+
+All the methods have CamelCase aliases. Use whatever you like. I
+personally prefer underscores.
+
+Objects are simply hashes, not Perl objects. Maybe objects will be added
+later.
+
+Of course not everything was ported. Some things don't make any sense
+for Perl, other are impossible to implement without depending on event
+loops and async programming.
+
+=head2 Implementation details
+
+Most of the functions are just wrappers around built-in functions.  Others use
+L<List::Util> and L<List::MoreUtils> modules.
+
+Numeric/String detection is done the same way L<JSON::PP> does it: by using
+L<B> hacks.
+
+Boolean values are implemented as overloaded methods, that return numbers or
+strings depending on the context.
+
+    _->true;
+    _->false;
+
+=head2 Object-Oriented and Functional Styles
+
+As original Underscore.js you can use Perl version in either an object-oriented
+or a functional style, depending on your preference. The following two lines of
+code are identical ways to double a list of numbers.
+
+    _->map([1, 2, 3], sub { my ($n) = @_; $n * 2; });
+    _([1, 2, 3])->map(sub { my ($n) = @_; $n * 2; });
+
+See L<http://documentcloud.github.com/underscore/#styles|original documentation>
+ why sometimes object-oriented style is better.
+
+=head1 DEVELOPMENT
+
+=head2 Repository
+
+    http://github.com/vti/underscore-perl
+
+=head1 CREDITS
+
+Undescore.js authors and contributors.
+
+=head1 AUTHOR
+
+Viacheslav Tykhanovskyi, C<vti@cpan.org>.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2011-2012, Viacheslav Tykhanovskyi
+
+This program is free software, you can redistribute it and/or modify it under
+the terms of the Artistic License version 2.0.
+
+=cut
