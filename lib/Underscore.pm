@@ -3,11 +3,7 @@ package Underscore;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
-
-use base 'Exporter';
-
-our @EXPORT_OK = qw(_);
+our $VERSION = '0.02';
 
 use B               ();
 use List::MoreUtils ();
@@ -15,6 +11,17 @@ use List::Util      ();
 use Scalar::Util    ();
 
 our $UNIQUE_ID = 0;
+
+sub import {
+    my $class = shift;
+    my (%options) = @_;
+
+    my $name = $options{-as} || '_';
+
+    my $package = caller;
+    no strict;
+    *{"$package\::$name"} = \&_;
+}
 
 sub _ {
     return new(__PACKAGE__, args => [@_]);
