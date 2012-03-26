@@ -1,8 +1,4 @@
-use strict;
-use warnings;
-
 use Test::Spec;
-
 use Underscore -as => 'X';
 
 describe 'import' => sub {

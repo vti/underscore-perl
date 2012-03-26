@@ -1,8 +1,4 @@
-use strict;
-use warnings;
-
 use Test::Spec;
-
 use Underscore;
 
 describe 'keys' => sub {
@@ -68,8 +64,8 @@ describe 'extend' => sub {
             {x => '2', a => 'b'});
     };
 
-    it 'does not copy undefined values' => sub {
-        is_deeply(_->extend({},  {a => 0, b => undef}), {a => 0});
+    it 'does copies undefined values' => sub {
+        is_deeply(_->extend({},  {a => 0, b => undef}), {a => 0, b => undef});
     };
 };
 
@@ -113,21 +109,30 @@ describe 'clone' => sub {
     };
 };
 
-# TODO
-#describe 'isEqual' => sub {
-#    it 'should compare object deeply' => sub {
-#        my $moe   = {name => 'moe', lucky => [13, 27, 34]};
-#        my $clone = {name => 'moe', lucky => [13, 27, 34]};
-#        ok($moe ne $clone);
-#        ok(_->isEqual($moe, $clone));
-#        ok(_($moe)->isEqual($clone));
-#    };
-#};
-#    ok(_.isEqual((/hello/ig), (/hello/ig)), 'identical regexes are equal');
-#    ok(!_.isEqual(null, [1]), 'a falsy is never equal to a truthy');
+describe 'isEqual' => sub {
+  my $moe   = {name => 'moe', lucky => [13, 27, 34], juu => undef };
+  my $clone = {name => 'moe', lucky => [13, 27, 34], juu => undef};
+
+  it 'should compare object deeply' => sub {
+    ok($moe ne $clone);
+    ok !_->isEqual($moe, {name => 'moe', 1,2})  ;
+    ok _->isEqual({}, {})  ;
+    ok !_->isEqual({a => 1}, {})  ;
+
+    # 4 ways to say the same
+    ok _->isEqual($moe, $clone) ;
+    ok _($moe)->isEqual($clone) ;
+    ok _($moe)->chain()->isEqual($clone)->value ;
+    ok _->chain($moe)->isEqual($clone)->value ;
+  } ;
+    
+  it 'says identical regexes are equal' => sub { ok(_->isEqual(qr/hello/, qr/hello/), ) ; } ;
+  it 'says a falsy is not equal to a truthy' => sub { ok(!_->isEqual(undef, [1]), ) ; } ;
+  it 'says different objects are not equal', sub { ok(!_->isEqual({x => 1, y => undef}, {x => 1, z => 2}), ) ; };
+} ;
+
 #    ok(_.isEqual({isEqual: function () { return true; }}, {}), 'first object implements `isEqual`');
 #    ok(_.isEqual({}, {isEqual: function () { return true; }}), 'second object implements `isEqual`');
-#    ok(!_.isEqual({x: 1, y: undefined}, {x: 1, z: 2}), 'objects with the same number of undefined keys are not equal');
 #    ok(!_.isEqual(_({x: 1, y: undefined}).chain(), _({x: 1, z: 2}).chain()), 'wrapped objects are not equal');
 #    equals(_({x: 1, y: 2}).chain().isEqual(_({x: 1, y: 2}).chain()).value(), true, 'wrapped objects are equal');
 #  });
@@ -136,9 +141,13 @@ describe 'isEmpty' => sub {
     it 'should check if value is empty' => sub {
         ok(!_([1])->isEmpty());
         ok(_->isEmpty([]));
+
         ok(!_->isEmpty({one => 1}));
         ok(_->isEmpty({}));
+
         ok(_->isEmpty(qr//));
+        ok(!_->isEmpty(qr/x/));
+
         ok(_->isEmpty(undef));
         ok(_->isEmpty());
         ok(_->isEmpty(''));
