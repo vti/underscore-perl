@@ -11,7 +11,7 @@ use List::MoreUtils ();
 use List::Util      ();
 use Scalar::Util    ();
 
-use Smart::Comments ;
+#use Smart::Comments ;
 
 our $UNIQUE_ID = 0;
 
