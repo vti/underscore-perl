@@ -13,7 +13,7 @@ describe 'Each iterators' => sub {
   it "context object property accessed" => sub {
     my $answers = [];
     _->each( [1, 2, 3] => sub {
-	       my ($num, undef, $ctx) = @_;
+	       my ($num, undef, $list, $ctx) = @_;
 	       push @$answers, $num * $ctx->{multiplier};
 	     },
 	     { multiplier => 5 } ) ;    
@@ -27,7 +27,11 @@ describe 'Each iterators' => sub {
     is_deeply($answers, [1, 2, 3]);
   };
 
-  it 'iterating over objects works, and ignores the object prototype.';
+  it 'iterate over objects' => sub {
+    my $answers = [];
+    _->forEach( {a => 1, b => 55} => sub { push @$answers, $_[0]; }) ;
+    is_deeply($answers, [1, 55]);    
+  } ;
 
   it 'can reference the original collection from inside the iterator' =>
     sub {
@@ -40,9 +44,9 @@ describe 'Each iterators' => sub {
     } ;
 
   it 'handles a null properly' => sub {
-    my $answers = 0;
-    _->each( undef, sub { ++$answers ; });
-    is($answers, 0);
+    my $count = 0;
+    _->each( undef, sub { ++$count ; });
+    is($count, 0);
   } ;
 } ;
 
@@ -54,11 +58,19 @@ describe 'A map' => sub {
 
   it 'tripled numbers with context' => sub {
     my $triples = _->map([1, 2, 3] => sub {
-			   my ($num, $key, $context) = @_;
+			   my ($num, $key, $list, $context) = @_;
 			   return $num * $context->{multiplier};
 			 },
 			 {multiplier => 3});
     is_deeply($triples, [3, 6, 9]);
+  };
+
+  it 'provides keys' => sub {
+    my $keys = _->map([16, 25, 36] => sub {
+			my ($num, $key) = @_;
+			return $key ;
+		      });
+    is_deeply($keys, [0, 1, 2]);
   };
 
   it 'OO-style doubled numbers' => sub {
@@ -66,12 +78,6 @@ describe 'A map' => sub {
       _([1, 2, 3])->map(sub { return $_[0] * 2; });
     is_deeply($doubled, [2, 4, 6]);
   };
-
-  #    var ids = _.map($('div.underscore-test').children(), function(n){ return n.id; });
-  #    ok(_.include(ids, 'qunit-header'), 'can use collection methods on NodeLists');
-  #
-  #    var ids = _.map(document.images, function(n){ return n.id; });
-  #    ok(ids[0] == 'chart_image', 'can use collection methods on HTMLCollections');
 
   it 'handles a null properly' => sub {
     my $ifnull = _->map(undef, sub {});
@@ -357,37 +363,49 @@ describe 'min' => sub {
   };
 };
 
+sub by_number { $_[0] <=> $_[1] }
+
 describe 'sort' => sub {
   it 'sorts regularly' => sub {
-    my $list = [3, 2, 1];
-    is_deeply(_($list)->sort, [1, 2, 3]);
+    my $list = [3, 2, 1, 10];
+    is_deeply(_($list)->sort, [1, 10, 2, 3]) ; # alpahbetic! 
   } ;
 } ;
 
 describe 'sortBy' => sub {
   it 'stooges sorted by age' => sub {
     my $people =
-      [{name => 'curly', age => 50}, {name => 'moe', age => 30}];
-    $people =
-      _->sortBy($people,
-		sub { my ($person) = @_; return $person->{age}; });
-    is_deeply(_->pluck($people, 'name'), [qw(moe curly)]);
+      [{name => 'curly', age => 50}, 
+       {name => 'moe', age => 30},
+       {name => 'larry', age => 40},
+      ] ;
+    $people = _->sortBy($people, \&by_number, sub { $_[0]->{age}; }) ;
+    is_deeply(_->pluck($people, 'name'), [qw(moe larry curly)]);
   };
-};
+} ;
 
 describe 'groupBy' => sub {
   it 'put each even number in the right group' => sub {
     my $parity = _->groupBy([1, 2, 3, 4, 5, 6], sub { $_[0] % 2; }) ;
     is_deeply($parity->{0}, [2, 4, 6]);
   };
-};
+  it 'also takes string as second arg' => sub {
+    my $groups = _->groupBy([{a=>1, b=>1}, {a=>1}, {a=>2}], 'a') ;
+    is_deeply($groups->{1}, [{a=>1, b=>1}, {a=>1}]);
+  };
+} ;
 
 describe 'sortedIndex' => sub {
   it '35 should be inserted at index 3' => sub {
     my $numbers = [10, 20, 30, 40, 50];
     my $num     = 35;
-    my $index   = _->sortedIndex($numbers, $num);
+    my $index   = _->sortedIndex($numbers, $num, \&by_number) ;
     is($index, 3);
+  } ;
+  it '{a=>2} should be inserted at index 2' => sub {
+    my $numbers = [{a=>0}, {a=>1}, {a=>3}, {a=>5}, {a=>10}];
+    my $index   = _->sortedIndex($numbers, {a=>2}, \&by_number, sub {$_[0]->{a}}) ;
+    is($index, 2);
   };
 };
 

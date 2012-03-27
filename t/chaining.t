@@ -33,22 +33,17 @@ describe 'map/flatten/reduce' => sub {
 
 describe 'select/reject/sortBy' => sub {
     my $numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    $numbers = _($numbers)->chain->select(
-        sub {
-            my ($n) = @_;
-            return $n % 2 == 0;
-        }
-      )->reject(
-        sub {
-            my ($n) = @_;
-            return $n % 4 == 0;
-        }
-      )->sortBy(
-        sub {
-            my ($n) = @_;
-            return -$n;
-        }
-      )->value;
+    $numbers = _->chain($numbers)
+      ->select( sub {
+		  my ($n) = @_;
+		  return $n % 2 == 0;
+		} )
+	->reject( sub {
+		    my ($n) = @_;
+		    return $n % 4 == 0;
+		  } )
+	  ->sortBy( sub { $_[0] <=> $_[1] },
+		    sub { my ($n) = @_; return -$n; }, )->value;
     is_deeply($numbers, [10, 6, 2]);
 } ;
 

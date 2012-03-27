@@ -39,127 +39,144 @@ sub new {
   return $self;
 }
 
-sub _call {
+sub _wrap_method {
   my ($self, $method, @args) = @_ ;
   $self->_finalize( $self->$method( $self->_prepare(@args) ) ) ;
+}
+
+sub _wrap_sub {
+  my ($self, $sub, @args) = @_ ;
+  $self->_finalize( $sub->( $self->_prepare(@args) ) ) ;
 }
 
 sub true  { Underscore::_True->new }
 sub false { Underscore::_False->new }
 
-eval "sub $_ : method { shift->_call( __$_ => \@_ ) ; }" 
-  for qw(
-	  all
-	  any
-	  bind
-	  clone
-	  compact
-	  compose
-	  concat
-	  defaults
-	  detect
-	  difference
-	  each
-	  extend
-	  first
-	  flatten
-	  functions
-	  group_by
-	  has
-	  identity
-	  include
-	  index_of
-	  intersection
-	  invoke
-	  is_array
-	  is_boolean
-	  is_empty
-	  is_equal
-	  is_function
-	  is_number
-	  is_regexp
-	  is_string
-	  is_undefined
-	  keys
-	  last 
-	  last_index_of
-	  min
-	  map
-	  max
-	  mixin
-	  once
-	  pluck
-	  pop
-	  range
-	  reduce
-	  reduce_right
-	  reject
-	  rest
-	  reverse
-	  select
-	  shuffle
-	  size
-	  sort
-	  sort_by
-	  sorted_index
-	  template
-	  times
-	  to_array
-	  union
-	  uniq
-	  unique_id
-	  unshift
-	  values
-	  without
-	  wrap
-	  zip
-       ) ;
+eval join "\n", map { "sub $_ : method { shift->_wrap_method( __$_ => \@_ ) ; }" }
+  qw(
+      all
+      any
+      bind
+      clone
+      compact
+      compose
+      concat
+      defaults
+      detect
+      difference
+      each
+      extend
+      first
+      flatten
+      functions
+      group_by
+      has
+      identity
+      include
+      index_of
+      intersection
+      invoke
+      is_array
+      is_boolean
+      is_empty
+      is_equal
+      is_function
+      is_number
+      is_regexp
+      is_string
+      is_undefined
+      keys
+      last 
+      last_index_of
+      min
+      map
+      max
+      mixin
+      once
+      pluck
+      pop
+      range
+      reduce
+      reduce_right
+      reject
+      rest
+      reverse
+      select
+      shuffle
+      size
+      sort
+      sort_by
+      sorted_index
+      template
+      times
+      to_array
+      union
+      uniq
+      unique_id
+      unshift
+      values
+      without
+      wrap
+      zip
+   ) ;
 
-eval qq{sub $_->[0] {\&$_->[1]}}
-  for ( ['forEach', 'each'],
-	['contains', 'include'],
-	['inject', 'reduce'],
-	['foldl', 'reduce'],
-	['foldr', 'reduce_right'],
-	['reduceRight', 'reduce_right'],
-	['find', 'detect'],
-	['filter', 'select'],
-	['every', 'all'],
-	['some', 'any'],
-	['sortBy', 'sort_by'],
-	['groupBy', 'group_by'],
-	['sortedIndex', 'sorted_index'],
-	['toArray', 'to_array'],
-	['tail', 'rest'],
-	['indexOf', 'index_of'],
-	['lastIndexOf', 'last_index_of'],
-	['uniqueId', 'unique_id'],
-	['isEqual', 'is_equal'],
-	['isEmpty', 'is_empty'],
-	['isArray', 'is_array'],
-	['isString', 'is_string'],
-	['isNumber', 'is_number'],
-	['isFunction', 'is_function'],
-	['isRegExp', 'is_regexp'],
-	['isUndefined', 'is_undefined'],
-	['isBoolean', 'is_boolean'],
-      ) ;
+eval join "\n", map { qq{sub $_->[0] {\&$_->[1]}} }
+  ( ['forEach', 'each'],
+    ['contains', 'include'],
+    ['inject', 'reduce'],
+    ['foldl', 'reduce'],
+    ['foldr', 'reduce_right'],
+    ['reduceRight', 'reduce_right'],
+    ['find', 'detect'],
+    ['filter', 'select'],
+    ['every', 'all'],
+    ['some', 'any'],
+    ['sortBy', 'sort_by'],
+    ['groupBy', 'group_by'],
+    ['sortedIndex', 'sorted_index'],
+    ['toArray', 'to_array'],
+    ['tail', 'rest'],
+    ['indexOf', 'index_of'],
+    ['lastIndexOf', 'last_index_of'],
+    ['uniqueId', 'unique_id'],
+    ['isEqual', 'is_equal'],
+    ['isEmpty', 'is_empty'],
+    ['isArray', 'is_array'],
+    ['isString', 'is_string'],
+    ['isNumber', 'is_number'],
+    ['isFunction', 'is_function'],
+    ['isRegExp', 'is_regexp'],
+    ['isUndefined', 'is_undefined'],
+    ['isBoolean', 'is_boolean'],
+  ) ;
 
 sub __each {
-  my ($self, $array, $cb, $context) = @_ ;
-  return unless defined $array;
+  my ($self, $obj, $cb, $context) = @_ ;
+  return unless defined $obj;
   
-  $context //= $array ;  
-  my $i = 0;
-  foreach (@$array) {
-    $cb->($_, $i, $context);
-    $i++;
+  if (ref $obj eq 'ARRAY') {
+    my $i = 0;
+    foreach (@$obj) {
+      $cb->($_, $i, $obj, $context);
+      $i++;
+    }
+  }
+  elsif (ref $obj eq 'HASH') {
+    while (my ($k, $v) = each %$obj) {
+      $cb->($v, $k, $obj, $context);
+    }
   }
 }
 
 sub __map {
-  my ($self, $array, $cb, $context) = @_ ;
-  [map { $cb->($_, undef, $context) } @$array];
+  my ($self, $obj, $cb, $context) = @_ ;
+  return ( ref $obj eq 'ARRAY' ?
+	   [map { $cb->($obj->[$_], $_, $obj, $context) } 0 .. $#$obj] :
+	   ref $obj eq 'HASH' ?
+	   [map { $cb->($obj->{$_}, $_, $obj, $context) } keys %$obj] :
+	   _->is_empty($obj) ?
+	   [] :
+	   undef ) ;
 }
 
 sub __include {
@@ -269,17 +286,19 @@ sub __max {
   $self->___compared(\&List::Util::max, $list, $iterator, $context ) ;
 }
 
-sub __sort : method {
+sub __sort {
   my ($self, $list) = @_ ;
   [sort @$list];
 }
 
 sub __sort_by {
-  my ($self, $list, $iterator, $context) = @_ ;
-  [sort { $a cmp $iterator->($b) } @$list];
+  my ($self, $list, $test, $key, $context) = @_ ;
+  $test //= sub { $_[0] cmp $_[1] } ;
+  $key //= _->identity ;
+  [sort { $test->( map $key->($_, $context), $a, $b ) } @$list];
 }
 
-sub __reverse : method {
+sub __reverse {
   my ($seflf, $list) = @_ ;
   [reverse @$list];
 }
@@ -289,23 +308,24 @@ sub __concat {
   [@$list, @$other];
 }
 
-sub __unshift : method {
+sub __unshift {
   my ($self, $list, @elements) = @_ ;
   unshift @$list, @elements;
   $list;
 }
 
-sub __pop : method {
+sub __pop {
   my ($self, $list) = @_ ;
   pop @$list;
   $list;
 }
 
 sub __group_by {
-  my ($self, $list, $iterator) =  @_ ;  
+  my ($self, $list, $iterator) =  @_ ;
+  my $key = ref $iterator eq 'CODE' ? $iterator : sub { $_[0]->{$iterator} } ;
   my %result ;
   foreach (@{$list}) {
-    my $group = $iterator->($_);
+    my $group = $key->($_);
     if (exists $result{$group}) {
       push @{$result{$group}}, $_;
     }
@@ -336,28 +356,23 @@ sub __shuffle {
 }
 
 sub __sorted_index {
-  my ($self, $list, $value, $iterator) = @_ ;
-  
-  # TODO $iterator
-  my $min = 0;
-  my $max = @$list;
-  my $mid ;
-  
-  do {
-    $mid = int(($min + $max) / 2);
-    if ($value > $list->[$mid]) {
-      $min = $mid + 1;
+  my ($self, $list, $value, $test, $key) = @_ ;
+  $test //= sub { $_[0] cmp $_[1] } ;
+  $key //= _->identity ;
+
+  my $low = 0;
+  my $high = @$list;
+
+  while ($low < $high) {
+    my $mid = ($low + $high) >> 1;
+    if ( $test->( map { $key->($_) } $list->[$mid], $value ) < 0 ) {
+      $low = $mid + 1 ;
     }
     else {
-      $max = $mid - 1;
-    }
-  } while ($list->[$mid] == $value || $min > $max);
-  
-  if ($list->[$mid] == $value) {
-    return $mid;
+      $high = $mid ;
+    } 
   }
-  
-  return $mid + 1;
+  return $low ;
 }
 
 sub __to_array {
@@ -433,7 +448,8 @@ sub __uniq {
   return [List::MoreUtils::uniq(@$array)] unless $is_sorted;
   
   List::Util::reduce {
-    @$a && $a->[$#$a] eq $b ? $a : [ @$a, $b ] ;
+    push @$a, $b if !@$a or $a->[-1] ne $b ;
+    return $a ;
   } [], @$array ;
 }
 
@@ -512,11 +528,7 @@ sub __mixin {
   no warnings 'redefine';
   foreach my $name (keys %functions) {
     *{__PACKAGE__ . '::' . $name} = sub {
-      my $self = shift;
-      
-      unshift @_, @{$self->{args}}
-	if defined $self->{args} && @{$self->{args}};
-      $functions{$name}->(@_);
+      shift->_wrap_sub($functions{$name}, @_) ;
     };
   }
 }
@@ -617,7 +629,7 @@ sub __has {
   exists $object->{$key} ;
 }
 
-sub __keys : method {
+sub __keys {
   my ($self, $object) = @_ ;
   die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
   [keys %$object];
@@ -632,19 +644,14 @@ sub __values {
 sub __functions {
   my ($self, $object) = @_ ;
   die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
-  my $functions = [];
-  foreach (keys %$object) {
-    push @$functions, $_
-      if ref $object->{$_} && ref $object->{$_} eq 'CODE';
-  }
-  $functions;
+  [ grep { ref $object->{$_} && ref $object->{$_} eq 'CODE'; } keys %$object ] ;
 }
 
 sub ___extend {
-  my ($self, $dont, @args) = @_ ;
+  my ($self, $dontuse, @args) = @_ ;
   List::Util::reduce { 
     for my $key (keys %$b) {
-      $a->{$key} = $b->{$key} unless $dont->($a, $b, $key) ;
+      $a->{$key} = $b->{$key} unless $dontuse->($a, $b, $key) ;
     }
     return $a ;
   } @args ;
@@ -656,7 +663,7 @@ sub __defaults { shift->___extend( sub { exists $_[0]->{$_[2]} ; }, @_ ) ; }
 
 sub __clone { shift->___extend( sub {0}, {}, @_ ) ; }
 
-sub _eq {
+sub ___eq {
   my ($o1, $o2) = @_ ;
   ( ref $o1 eq ref $o2 and
     $o1 ~~ $o2 and 
@@ -667,7 +674,7 @@ sub _eq {
 
 sub __is_equal {
   my ($self, $object, $other) = @_ ;
-  _eq($object, $other) ? 1 : 0 ; 
+  ___eq($object, $other) ? 1 : 0 ; 
 }
 
 sub __is_empty {

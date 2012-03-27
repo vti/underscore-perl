@@ -187,8 +187,10 @@ describe 'isString' => sub {
 describe 'isNumber' => sub {
     it 'should check if value is a number' => sub {
         ok(!_->isNumber('string'));
+        ok(!_->isNumber('33'));
+        ok( _->isNumber(0+'33'));
         ok(!_->isNumber(undef));
-        ok(_->isNumber(3 * 4 - 7 / 10));
+        ok( _->isNumber(3 * 4 - 7 / 10));
     };
 };
 

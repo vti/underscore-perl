@@ -42,7 +42,6 @@ describe 'mixin' => sub {
         _->mixin(
             myReverse => sub {
                 my ($string) = @_;
-
                 return join '', reverse split '', $string;
             }
         );
@@ -54,6 +53,10 @@ describe 'mixin' => sub {
 
     it 'mixed in a function to the OOP wrapper' => sub {
         is(_('champ')->myReverse, 'pmahc');
+    };
+
+    it 'works with chain' => sub {
+        is(_->chain('champ')->myReverse->value, 'pmahc');
     };
 };
 

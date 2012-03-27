@@ -18,6 +18,7 @@ requires 'List::MoreUtils';
 requires 'B';
 
 build_requires 'Test::Spec';
+build_requires 'Try::Tiny';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 

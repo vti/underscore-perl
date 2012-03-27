@@ -25,7 +25,7 @@ describe 'first' => sub {
     };
 
     it 'works well with _.map' => sub {
-       my $result = _->map([[1, 2, 3], [1, 2, 3]], sub{ _->first(@_) });
+       my $result = _->map([[1, 2, 3], [1, 2, 3]], sub { _->first($_[0]) });
        is_deeply($result, [1,1]);
     };
 };
@@ -184,8 +184,7 @@ describe 'zip' => sub {
 
 describe 'indexOf' => sub {
 
-    # TODO fix description
-    it 'can compute indexOf, even without the native function' => sub {
+    it 'basic usage' => sub {
         my $numbers = [1, 2, 3];
         is(_->indexOf($numbers, 2), 1);
     };
