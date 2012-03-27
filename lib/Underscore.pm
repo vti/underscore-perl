@@ -539,10 +539,7 @@ sub __unique_id {
   $prefix . ($UNIQUE_ID++);
 }
 
-sub __identity {
-  my ($self, $value) = @_ ;    
-  sub { return $_[0] ; } ;
-}
+sub __identity { sub { return $_[0] ; } ; }
 
 sub __times {
   my ($self, $n, $iterator) = @_ ;
@@ -550,9 +547,7 @@ sub __times {
 }
 
 sub template_settings {
-  my $self = shift;
-  my (%args) = @_;
-  
+  my ($self, %args) = @_;
   for (qw/interpolate evaluate/) {
     if (my $value = $args{$_}) {
       $self->{template_settings}->{$_} = $value;
@@ -713,10 +708,7 @@ sub __is_number {
   
   # From JSON::PP
   my $flags = B::svref_2object(\$object)->FLAGS;
-  my $is_number = $flags & (B::SVp_IOK | B::SVp_NOK)
-    and !($flags & B::SVp_POK) ? 1 : 0;
- 
-  $is_number;
+  ( $flags & (B::SVp_IOK | B::SVp_NOK) and !($flags & B::SVp_POK) ) ? 1 : 0 ;
 }
 
 sub __is_function {
