@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use v5.10.1 ;
 
-our $VERSION = '0.02';
+use constant VERSION => '0.02' ;
+our $VERSION = VERSION ;
 
 use B               ();
 use List::MoreUtils ();
@@ -105,6 +106,7 @@ eval join "\n", map { "sub $_ : method { shift->_wrap_method( __$_ => \@_ ) ; }"
       shuffle
       size
       sort
+      sort_numeric
       sort_by
       sorted_index
       template
@@ -289,6 +291,11 @@ sub __max {
 sub __sort {
   my ($self, $list) = @_ ;
   [sort @$list];
+}
+
+sub __sort_numeric {
+  my ($self, $list) = @_ ;
+  [sort { $a <=> $b } @$list];
 }
 
 sub __sort_by {
@@ -736,8 +743,8 @@ sub __is_boolean {
 sub chain {
   my $self = shift;
   if (@_) {
-    my ($object) = $self->_prepare(@_);
-    return _( $object )->chain ;
+    my @args = $self->_prepare(@_);
+    return _( @args )->chain ;
   }
   else {
     $self->{chain} = 1;

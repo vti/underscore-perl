@@ -370,6 +370,10 @@ describe 'sort' => sub {
     my $list = [3, 2, 1, 10];
     is_deeply(_($list)->sort, [1, 10, 2, 3]) ; # alpahbetic! 
   } ;
+  it 'sorts numerically' => sub {
+    my $list = [3, 2, 1, 10];
+    is_deeply(_($list)->sort_numeric, [1, 2, 3, 10]) ;
+  } ;
 } ;
 
 describe 'sortBy' => sub {

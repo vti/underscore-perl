@@ -165,6 +165,10 @@ describe 'difference' => sub {
         my $result = _->difference([1, 2, 3], [2, 30, 40]);
         is_deeply([sort @$result], [1, 3]);
     };
+    it 'works with chain()' => sub {
+        my $result = _->chain([1, 2, 3], [2, 30, 40])->difference->value;
+        is_deeply([sort @$result], [1, 3]);
+    };
     it 'also handles undef values' => sub {
         my $result = _->difference([undef, 2, 3], [2, 30, 40]);
         is_deeply([sort map { $_ // ':' } @$result], [3, ':']);
