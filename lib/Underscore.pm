@@ -2,892 +2,633 @@ package Underscore;
 
 use strict;
 use warnings;
+use v5.10.1 ;
 
-our $VERSION = '0.02';
+use constant VERSION => '0.02' ;
+our $VERSION = VERSION ;
 
 use B               ();
 use List::MoreUtils ();
 use List::Util      ();
 use Scalar::Util    ();
 
+#use Smart::Comments ;
+
 our $UNIQUE_ID = 0;
+our $self ;
+our %ONCE ;
 
 sub import {
-    my $class = shift;
-    my (%options) = @_;
+  my $class = shift;
+  my (%options) = @_;
 
-    my $name = $options{-as} || '_';
+  my $name = $options{-as} || '_';
 
-    my $package = caller;
-    no strict;
-    *{"$package\::$name"} = \&_;
+  my $package = caller;
+  no strict;
+  *{"$package\::$name"} = \&_;
 }
 
-sub _ {
-    return new(__PACKAGE__, args => [@_]);
-}
+sub _ { new(__PACKAGE__, args => [@_]) ; }
 
 sub new {
-    my $class = shift;
-
-    my $self = {@_};
-    bless $self, $class;
-
-    $self->{template_settings} = {
-        evaluate    => qr/<\%([\s\S]+?)\%>/,
-        interpolate => qr/<\%=([\s\S]+?)\%>/
-    };
-
-    return $self;
+  my $class = shift;
+  my $self = +{@_};
+  
+  $self->{template_settings} = { evaluate    => qr/<\%([\s\S]+?)\%>/,
+				 interpolate => qr/<\%=([\s\S]+?)\%>/
+			       } ;  
+  bless $self, $class;
 }
 
 sub true  { Underscore::_True->new }
 sub false { Underscore::_False->new }
 
-sub forEach {&each}
-
-sub each {
-    my $self = shift;
-    my ($array, $cb, $context) = $self->_prepare(@_);
-
-    return unless defined $array;
-
-    $context = $array unless defined $context;
-
-    my $i = 0;
-    foreach (@$array) {
-        $cb->($_, $i, $context);
-        $i++;
-    }
-}
-
-sub map {
-    my $self = shift;
-    my ($array, $cb, $context) = $self->_prepare(@_);
-
-    my $result = [map { $cb->($_, undef, $context) } @$array];
-
-    return $self->_finalize($result);
-}
-
-sub contains {&include}
-
-sub include {
-    my $self = shift;
-    my ($list, $value) = $self->_prepare(@_);
-
-    if (ref $list eq 'ARRAY') {
-        return (List::Util::first { $_ eq $value } @$list) ? 1 : 0;
-    }
-    elsif (ref $list eq 'HASH') {
-        return (List::Util::first { $_ eq $value } values %$list) ? 1 : 0;
-    }
-
-    die 'WTF?';
-}
-
-sub inject {&reduce}
-sub foldl  {&reduce}
-
-sub reduce {
-    my $self = shift;
-    my ($array, $iterator, $memo, $context) = $self->_prepare(@_);
-
-    die 'TypeError' if !defined $array && !defined $memo;
-
-    # TODO
-    $memo = 0 unless defined $memo;
-    return $memo unless defined $array;
-
-    foreach (@$array) {
-        $memo = $iterator->($memo, $_, $context) if defined $_;
-    }
-
-    return $self->_finalize($memo);
-}
-
-sub foldr       {&reduce_right}
-sub reduceRight {&reduce_right}
-
-sub reduce_right {
-    my $self = shift;
-    my ($array, $iterator, $memo, $context) = $self->_prepare(@_);
-
-    die 'TypeError' if !defined $array && !defined $memo;
-
-    # TODO
-    $memo = '' unless defined $memo;
-    return $memo unless defined $array;
-
-    foreach (reverse @$array) {
-        $memo = $iterator->($memo, $_, $context) if defined $_;
-    }
-
-    return $memo;
-}
-
-sub detect {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    return List::Util::first { $iterator->($_) } @$list;
-}
-
-sub filter {&select}
-
-sub select {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    my $result = [grep { $iterator->($_) } @$list];
-
-    $self->_finalize($result);
-}
-
-sub reject {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    my $result = [grep { !$iterator->($_) } @$list];
-
-    $self->_finalize($result);
-}
-
-sub every {&all}
-
-sub all {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    foreach (@$list) {
-        return 0 unless $iterator->($_);
-    }
-
-    return 1;
-}
-
-sub some {&any}
-
-sub any {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    return 0 unless defined @$list;
-
-    foreach (@$list) {
-        return 1 if $iterator ? $iterator->($_) : $_;
-    }
-
-    return 0;
-}
-
-sub invoke {
-    my $self = shift;
-    my ($list, $method, @args) = $self->_prepare(@_);
-
-    my $result = [];
-
-    foreach (@$list) {
-        push @$result,
-          [ref $method eq 'CODE' ? $method->(@$_) : $self->$method(@$_)];
-    }
-
-    return $result;
-}
-
-sub pluck {
-    my $self = shift;
-    my ($list, $key) = $self->_prepare(@_);
-
-    my $result = [];
-
-    foreach (@$list) {
-        push @$result, $_->{$key};
-    }
-
-    return $result;
-}
-
-sub max {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    return List::Util::max(@$list) unless defined $iterator;
-
-    return List::Util::max(map { $iterator->($_) } @$list);
-}
-
-sub min {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    return List::Util::min(@$list) unless defined $iterator;
-
-    return List::Util::min(map { $iterator->($_) } @$list);
-}
-
-sub sort : method {
-    my $self = shift;
-    my ($list) = $self->_prepare(@_);
-
-    return [sort @$list];
-}
-
-sub sortBy {&sort_by}
-
-sub sort_by {
-    my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
-
-    my $result = [sort { $a cmp $iterator->($b) } @$list];
-
-    return $self->_finalize($result);
-}
-
-sub reverse : method {
-    my $self = shift;
-    my ($list) = $self->_prepare(@_);
-
-    my $result = [reverse @$list];
-
-    return $self->_finalize($result);
-}
-
-sub concat {
-    my $self = shift;
-    my ($list, $other) = $self->_prepare(@_);
-
-    my $result = [@$list, @$other];
-
-    return $self->_finalize($result);
-}
-
-sub unshift : method {
-    my $self = shift;
-    my ($list, @elements) = $self->_prepare(@_);
-
-    unshift @$list, @elements;
-    my $result = $list;
-
-    return $self->_finalize($result);
-}
-
-sub pop : method {
-    my $self = shift;
-    my ($list) = $self->_prepare(@_);
-
-    pop @$list;
-    my $result = $list;
-
-    return $self->_finalize($result);
-}
-
-sub groupBy {&group_by}
-
-sub group_by {
-    my $self = shift;
-    my ($list, $iterator) = $self->_prepare(@_);
-
-    my $result = {};
-    foreach (@{$list}) {
-        my $group = $iterator->($_);
-        if (exists $result->{$group}) {
-            push @{$result->{$group}}, $_;
-        }
-        else {
-            $result->{$group} = [$_];
-        }
-    }
-
-    return $self->_finalize($result);
-}
-
-sub sortedIndex {&sorted_index}
-
-sub sorted_index {
-    my $self = shift;
-    my ($list, $value, $iterator) = $self->_prepare(@_);
-
-    # TODO $iterator
-
-    my $min = 0;
-    my $max = @$list;
-    my $mid;
-
-    do {
-        $mid = int(($min + $max) / 2);
-        if ($value > $list->[$mid]) {
-            $min = $mid + 1;
-        }
-        else {
-            $max = $mid - 1;
-        }
-    } while ($list->[$mid] == $value || $min > $max);
-
-    if ($list->[$mid] == $value) {
-        return $mid;
-    }
-
-    return $mid + 1;
-}
-
-sub toArray {&to_array}
-
-sub to_array {
-    my $self = shift;
-    my ($list) = $self->_prepare(@_);
-
-    return [values %$list] if ref $list eq 'HASH';
-
-    return [$list] unless ref $list eq 'ARRAY';
-
-    return [@$list];
-}
-
-sub size {
-    my $self = shift;
-    my ($list) = $self->_prepare(@_);
-
-    return scalar @$list if ref $list eq 'ARRAY';
-
-    return scalar keys %$list if ref $list eq 'HASH';
-
-    return 1;
-}
-
-sub first {
-    my $self = shift;
-    my ($array, $n) = $self->_prepare(@_);
-
-    return $array->[0] unless defined $n;
-
-    return [@{$array}[0 .. $n - 1]];
-}
-
-sub tail {&rest}
-
-sub rest {
-    my $self = shift;
-    my ($array, $index) = $self->_prepare(@_);
-
-    $index = 1 unless defined $index;
-
-    return [@{$array}[$index .. $#$array]];
-}
-
-sub last {
-    my $self = shift;
-    my ($array) = $self->_prepare(@_);
-
-    return $array->[-1];
-}
-
-sub compact {
-    my $self = shift;
-    my ($array) = $self->_prepare(@_);
-
-    my $new_array = [];
-    foreach (@$array) {
-        push @$new_array, $_ if $_;
-    }
-
-    return $new_array;
-}
-
-sub flatten {
-    my $self = shift;
-    my ($array) = $self->_prepare(@_);
-
-    my $cb;
-    $cb = sub {
-        my $result = [];
-        foreach (@{$_[0]}) {
-            if (ref $_ eq 'ARRAY') {
-                push @$result, @{$cb->($_)};
-            }
-            else {
-                push @$result, $_;
-            }
-        }
-        return $result;
-    };
-
-    my $result = $cb->($array);
-
-    return $self->_finalize($result);
-}
-
-sub without {
-    my $self = shift;
-    my ($array, @values) = $self->_prepare(@_);
-
-    # Nice hack comparing hashes
-
-    my $new_array = [];
-    foreach my $el (@$array) {
-        push @$new_array, $el
-          unless defined List::Util::first { $el eq $_ } @values;
-    }
-
-    return $new_array;
-}
-
-sub uniq {
-    my $self = shift;
-    my ($array, $is_sorted) = $self->_prepare(@_);
-
-    return [List::MoreUtils::uniq(@$array)] unless $is_sorted;
-
-    # We can push first value to prevent unneeded -1 check
-    my $new_array = [shift @$array];
-    foreach (@$array) {
-        push @$new_array, $_ unless $_ eq $new_array->[-1];
-    }
-
-    return $new_array;
-}
-
-sub intersection {
-    my $self = shift;
-    my (@arrays) = $self->_prepare(@_);
-
-    my $seen = {};
-    foreach my $array (@arrays) {
-        $seen->{$_}++ for @$array;
-    }
-
-    my $intersection = [];
-    foreach (keys %$seen) {
-        push @$intersection, $_ if $seen->{$_} == @arrays;
-    }
-    return $intersection;
-}
-
-sub union {
-    my $self = shift;
-    my (@arrays) = $self->_prepare(@_);
-
-    my $seen = {};
-    foreach my $array (@arrays) {
-        $seen->{$_}++ for @$array;
-    }
-
-    return [keys %$seen];
-}
-
-sub difference {
-    my $self = shift;
-    my ($array, $other) = $self->_prepare(@_);
-
-    my $new_array = [];
-    foreach my $el (@$array) {
-        push @$new_array, $el unless List::Util::first { $el eq $_ } @$other;
-    }
-
-    return $new_array;
-}
-
-sub zip {
-    my $self = shift;
-    my (@arrays) = $self->_prepare(@_);
-
-    # This code is from List::MoreUtils
-    # (can't use it here directly because of the prototype!)
-    my $max = -1;
-    $max < $#$_ && ($max = $#$_) foreach @arrays;
-    return [
-        map {
-            my $ix = $_;
-            map $_->[$ix], @_;
-          } 0 .. $max
-    ];
-
-}
-
-sub indexOf {&index_of}
-
-sub index_of {
-    my $self = shift;
-    my ($array, $value, $is_sorted) = $self->_prepare(@_);
-
-    return -1 unless defined $array;
-
-    return List::MoreUtils::first_index { $_ eq $value } @$array;
-}
-
-sub lastIndexOf {&last_index_of}
-
-sub last_index_of {
-    my $self = shift;
-    my ($array, $value, $is_sorted) = $self->_prepare(@_);
-
-    return -1 unless defined $array;
-
-    return List::MoreUtils::last_index { $_ eq $value } @$array;
-}
-
-sub range {
-    my $self = shift;
-    my ($start, $stop, $step) =
-      @_ == 3 ? @_ : @_ == 2 ? @_ : (undef, @_, undef);
-
-    return [] unless $stop;
-
-    $start = 0 unless defined $start;
-
-    return [$start .. $stop - 1] unless defined $step;
-
-    my $new_array = [];
-    while ($start < $stop) {
-        push @$new_array, $start;
-        $start += $step;
-    }
-    return $new_array;
-}
-
-sub mixin {
-    my $self = shift;
-    my (%functions) = $self->_prepare(@_);
-
-    no strict 'refs';
-    no warnings 'redefine';
-    foreach my $name (keys %functions) {
-        *{__PACKAGE__ . '::' . $name} = sub {
-            my $self = shift;
-
-            unshift @_, @{$self->{args}}
-              if defined $self->{args} && @{$self->{args}};
-            $functions{$name}->(@_);
-        };
-    }
-}
-
-sub uniqueId {&unique_id}
-
-sub unique_id {
-    my $self = shift;
-    my ($prefix) = $self->_prepare(@_);
-
-    $prefix = '' unless defined $prefix;
-
-    return $prefix . ($UNIQUE_ID++);
-}
-
-sub times {
-    my $self = shift;
-    my ($n, $iterator) = $self->_prepare(@_);
-
-    for (0 .. $n - 1) {
-        $iterator->($_);
-    }
-}
-
-sub template_settings {
-    my $self = shift;
-    my (%args) = @_;
-
-    for (qw/interpolate evaluate/) {
-        if (my $value = $args{$_}) {
-            $self->{template_settings}->{$_} = $value;
-        }
-    }
-}
-
-sub template {
-    my $self = shift;
-    my ($template) = $self->_prepare(@_);
-
-    my $evaluate    = $self->{template_settings}->{evaluate};
-    my $interpolate = $self->{template_settings}->{interpolate};
-
-    return sub {
-        my ($args) = @_;
-
-        my $code = q!sub {my ($args) = @_; my $_t = '';!;
-        foreach my $arg (keys %$args) {
-            $code .= "my \$$arg = \$args->{$arg};";
-        }
-
-        $template =~ s{$interpolate}{\}; \$_t .= $1; \$_t .= q\{}g;
-        $template =~ s{$evaluate}{\}; $1; \$_t .= q\{}g;
-
-        $code .= '$_t .= q{';
-        $code .= $template;
-        $code .= '};';
-        $code .= 'return $_t};';
-
-        my $sub = eval $code;
-
-        return $sub->($args);
-    };
-}
-
-our $ONCE;
-
-sub once {
-    my $self = shift;
-    my ($func) = @_;
-
-    return sub {
-        return if $ONCE;
-
-        $ONCE++;
-        $func->(@_);
-    };
-}
-
-sub wrap {
-    my $self = shift;
-    my ($function, $wrapper) = $self->_prepare(@_);
-
-    return sub {
-        $wrapper->($function, @_);
-    };
-}
-
-sub compose {
-    my $self = shift;
-    my (@functions) = @_;
-
-    return sub {
-        my @args = @_;
-        foreach (reverse @functions) {
-            @args = $_->(@args);
-        }
-
-        return wantarray ? @args : $args[0];
-    };
-}
-
-sub bind {
-    my $self = shift;
-    my ($function, $object, @args) = $self->_prepare(@_);
-
-    return sub {
-        $function->($object, @args, @_);
-    };
-}
-
-sub keys : method {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
-
-    return [keys %$object];
-}
-
-sub values {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
-
-    return [values %$object];
-}
-
-sub functions {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
-
-    my $functions = [];
-    foreach (keys %$object) {
-        push @$functions, $_
-          if ref $object->{$_} && ref $object->{$_} eq 'CODE';
-    }
-    return $functions;
-}
-
-sub extend {
-    my $self = shift;
-    my ($destination, @sources) = $self->_prepare(@_);
-
-    foreach my $source (@sources) {
-        foreach my $key (keys %$source) {
-            next unless defined $source->{$key};
-            $destination->{$key} = $source->{$key};
-        }
-    }
-
-    return $destination;
-}
-
-sub defaults {
-    my $self = shift;
-    my ($object, @defaults) = $self->_prepare(@_);
-
-    foreach my $default (@defaults) {
-        foreach my $key (keys %$default) {
-            next if exists $object->{$key};
-            $object->{$key} = $default->{$key};
-        }
-    }
-
-    return $object;
-}
-
-sub clone {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    # Scalars will be copied, everything deeper not
-    my $cloned = {};
-    foreach my $key (keys %$object) {
-        $cloned->{$key} = $object->{$key};
-    }
-
-    return $cloned;
-}
-
-sub isEqual {&is_equal}
-
-sub is_equal {
-    my $self = shift;
-    my ($object, $other) = $self->_prepare(@_);
-}
-
-sub isEmpty {&is_empty}
-
-sub is_empty {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 1 unless defined $object;
-
-    if (!ref $object) {
-        return 1 if $object eq '';
-    }
-    elsif (ref $object eq 'HASH') {
-        return 1 if !(keys %$object);
-    }
-    elsif (ref $object eq 'ARRAY') {
-        return 1 if @$object == 0;
-    }
-    elsif (ref $object eq 'Regexp') {
-        return 1 if $object eq qr//;
-    }
-
-    return 0;
-}
-
-sub isArray {&is_array}
-
-sub is_array {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 1 if defined $object && ref $object && ref $object eq 'ARRAY';
-
-    return 0;
-}
-
-sub isString {&is_string}
-
-sub is_string {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 0 unless defined $object && !ref $object;
-
-    return 0 if $self->is_number($object);
-
-    return 1;
-}
-
-sub isNumber {&is_number}
-
-sub is_number {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 0 unless defined $object && !ref $object;
-
-    # From JSON::PP
-    my $flags = B::svref_2object(\$object)->FLAGS;
-    my $is_number = $flags & (B::SVp_IOK | B::SVp_NOK)
-      and !($flags & B::SVp_POK) ? 1 : 0;
-
-    return 1 if $is_number;
-
-    return 0;
-}
-
-sub isFunction {&is_function}
-
-sub is_function {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 1 if defined $object && ref $object && ref $object eq 'CODE';
-
-    return 0;
-}
-
-sub isRegExp {&is_regexp}
-
-sub is_regexp {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 1 if defined $object && ref $object && ref $object eq 'Regexp';
-
-    return 0;
-}
-
-sub isUndefined {&is_undefined}
-
-sub is_undefined {
-    my $self = shift;
-    my ($object) = $self->_prepare(@_);
-
-    return 1 unless defined $object;
-
-    return 0;
-}
-
-sub isBoolean {&is_boolean}
-
-sub is_boolean {
-    my $self = shift;
-    my ($object) = @_;
-
-    return 1
-      if Scalar::Util::blessed($object)
-          && (   $object->isa('Underscore::_True')
-              || $object->isa('Underscore::_False'));
-
-    return 0;
-}
+my %u
+  = ( mixin => sub {
+	my (%functions) = @_ ;
+	
+	no strict 'refs';
+	no warnings 'redefine';
+	while ( my ( $name, $sub ) = each %functions ) {
+	  *{__PACKAGE__ . '::' . $name} = sub : method { 
+	    local $self = shift ;
+	    $self->_wrap($sub, @_) ;
+	  } ;
+	}
+      },
+      each => sub {
+	my ($obj, $cb, $context) = @_ ;
+	return unless defined $obj;
+		
+	if (ref $obj eq 'ARRAY') {
+	  my $i = 0;
+	  foreach (@$obj) {
+	    $cb->($_, $i, $obj, $context);
+	    $i++;
+	  }
+	} elsif (ref $obj eq 'HASH') {
+	  while (my ($k, $v) = each %$obj) {
+	    $cb->($v, $k, $obj, $context);
+	  }
+	}
+      },
+      extend => sub { _extend(sub {1}, @_) ; },
+      defaults => sub { _extend(sub { not exists $_[0]->{$_[2]} ; }, @_) ; },
+      clone => sub { _extend( sub {1}, {}, @_ ) ; },
+      map => sub {
+	my ($obj, $cb, $context) = @_ ;
+	return ( ref $obj eq 'ARRAY' ?
+		 [map { $cb->($obj->[$_], $_, $obj, $context) } 0 .. $#$obj] :
+		 ref $obj eq 'HASH' ?
+		 [map { $cb->($obj->{$_}, $_, $obj, $context) } keys %$obj] :
+		 _->is_empty($obj) ?
+		 [] :
+		 undef ) ;
+      },
+      include => sub {
+	my ($list, $value) = @_ ; 
+	( ref $list eq 'ARRAY' ? 
+	  (( List::Util::first { $_ eq $value } @$list) ? 1 : 0 ) :
+	  ref $list eq 'HASH' ? 
+	  ((List::Util::first { $_ eq $value } values %$list) ? 1 : 0 ) :
+	  die 'WTF?' ) ;
+      },
+      reduce => sub {
+	my ($array, $iterator, $memo, $context) = @_ ;
+	die 'TypeError' if !defined $array && !defined $memo;
+  
+	# TODO
+	$memo //= 0 ;
+	return $memo unless defined $array;
+  
+	foreach (@$array) {
+	  $memo = $iterator->($memo, $_, $context) if defined $_;
+	}
+	return $memo ;
+      },
+      reduce_right => sub {
+	my ($array, $iterator, $memo, $context) = @_ ;
+
+	die 'TypeError' if !defined $array && !defined $memo;
+
+	# TODO
+	$memo //= '' ;
+	return $memo unless defined $array;
+
+	foreach (reverse @$array) {
+	  $memo = $iterator->($memo, $_, $context) if defined $_;
+	}
+
+	return $memo;
+      },
+      detect => sub {
+	my ($list, $iterator, $context) = @_ ;
+	List::Util::first { $iterator->($_) } @$list;
+      },
+      select => sub {
+	my ($list, $iterator, $context) = @_ ;
+	[grep { $iterator->($_) } @$list];
+      },
+      reject => sub {
+	my ($list, $iterator, $context) = @_ ;
+	[grep { !$iterator->($_) } @$list];
+      },
+      all => sub {
+	my ($list, $iterator, $context) = @_ ;
+	foreach (@$list) {
+	  return 0 unless $iterator->($_);
+	}  
+	return 1;
+      },
+      any => sub {
+	my ($list, $iterator, $context) = @_ ;  
+	return 0 unless defined @$list;
+	foreach (@$list) {
+	  return 1 if $iterator ? $iterator->($_) : $_;
+	}  
+	return 0;
+      },
+      invoke => sub {
+	my ($list, $method, @args) = @_ ;
+	[ map { ref $method eq 'CODE' ? $method->($_, @args) : $self->$method($_, @args) }
+	  @$list ] ;
+      },
+      pluck => sub {
+	my ($list, $key) = @_ ;  
+	[ map { $_->{$key} } @$list ] ;
+      },
+      min => sub {
+	my ($list, $iterator, $context) = @_ ;
+	_compared(\&List::Util::min, $list, $iterator, $context ) ;
+      },
+      max => sub {
+	my ($list, $iterator, $context) = @_ ;
+	_compared(\&List::Util::max, $list, $iterator, $context ) ;
+      },
+      sort => sub {
+	my ($list) = @_ ;
+	[sort @$list];
+      },
+      sort_numeric => sub {
+	my ($list) = @_ ;
+	[sort { $a <=> $b } @$list];
+      },
+      sort_by => sub {
+	my ($list, $test, $key, $context) = @_ ;
+	$test //= sub { $_[0] cmp $_[1] } ;
+	$key //= _->identity ;
+	[sort { $test->( map $key->($_, $context), $a, $b ) } @$list];
+      },
+      reverse => sub {
+	my ($list) = @_ ;
+	[reverse @$list];
+      },
+      concat => sub {
+	my ($list, $other) = @_ ;
+	[@$list, @$other];
+      },
+      unshift => sub {
+	my ($list, @elements) = @_ ;
+	unshift @$list, @elements;
+	$list;
+      },
+      pop => sub {
+	my ($list) = @_ ;
+	pop @$list;
+	$list;
+      },
+      group_by => sub {
+	my ($list, $iterator) =  @_ ;
+	my $key = ref $iterator eq 'CODE' ? $iterator : sub { $_[0]->{$iterator} } ;
+	my %result ;
+	foreach (@{$list}) {
+	  my $group = $key->($_);
+	  if (exists $result{$group}) {
+	    push @{$result{$group}}, $_;
+	  } else {
+	    $result{$group} = [$_];
+	  }
+	}
+	\%result ;
+      },
+      shuffle => sub {
+	my ($list ) = @_ ;  
+	my @shuffled ;
+	my $rand ;
+	my $index = 0 ;
+	for my $value (@$list) {
+	  if ($index == 0) {
+	    $shuffled[0] = $value;
+	  } else {
+	    $rand = int(rand() * ($index + 1)) ;
+	    $shuffled[$index] = $shuffled[$rand] ;
+	    $shuffled[$rand] = $value;
+	  }
+	  $index++ ;
+	} 
+	\@shuffled ;
+      },
+      sorted_index => sub {
+	my ($list, $value, $test, $key) = @_ ;
+	$test //= sub { $_[0] cmp $_[1] } ;
+	$key //= _->identity ;
+
+	my $low = 0;
+	my $high = @$list;
+
+	while ($low < $high) {
+	  my $mid = ($low + $high) >> 1;
+	  if ( $test->( map { $key->($_) } $list->[$mid], $value ) < 0 ) {
+	    $low = $mid + 1 ;
+	  } else {
+	    $high = $mid ;
+	  } 
+	}
+	return $low ;
+      },
+      to_array => sub {
+	my ($list) = @_ ;
+	return [values %$list] if ref $list eq 'HASH';
+	return [$list] unless ref $list eq 'ARRAY';
+	return [@$list];
+      },
+      size => sub {
+	my ($list) =  @_ ;
+	( ref $list eq 'ARRAY' ?
+	  scalar @$list :
+	  ref $list eq 'HASH' ?
+	  scalar keys %$list :
+	  1 ) ;
+      },
+      first => sub {
+	my ($array, $n) = @_ ;
+	return defined $n ? [@{$array}[0 .. $n - 1]] : $array->[0] ;
+      },
+      rest => sub {
+	my ($array, $index) = @_ ;
+	$index //= 1 ;
+	return [@{$array}[$index .. $#$array]];
+      },
+      last => sub {
+	my ($array, $count) = @_ ;
+	$count //= 1 ;
+	return $count == 1 ? $array->[-1] : [ @$array[ -$count .. -1 ] ] ;
+      },
+      compact => sub {
+	my ($array) = @_ ;
+	[ grep { $_ } @$array ] ;
+      },
+      flatten => sub {
+	my ($array) = @_ ;
+	my $cb ;
+	$cb = sub {
+	  my $result = [];
+	  foreach (@{$_[0]}) {
+	    if (ref $_ eq 'ARRAY') {
+	      push @$result, @{$cb->($_)};
+	    } else {
+	      push @$result, $_;
+	    }
+	  }
+	  return $result;
+	} ;
+	$cb->($array) ;  
+      },
+      without => sub {
+	my ($array, @values) = @_ ;
+  
+	my $new_array = [];
+	foreach my $el (@$array) {
+	  push @$new_array, $el
+	    unless 0 <= List::MoreUtils::first_index { $el eq $_ } @values;
+	}
+	$new_array;
+      },
+      uniq => sub {
+	my ($array, $is_sorted) = @_ ;
+	return [List::MoreUtils::uniq(@$array)] unless $is_sorted;
+  
+	List::Util::reduce {
+	  push @$a, $b if !@$a or $a->[-1] ne $b ;
+	  return $a ;
+	} [], @$array ;
+      },
+      intersection => sub {
+	my (@arrays) = @_ ;
+	my $seen = {};
+	foreach my $array (@arrays) {
+	  $seen->{$_}++ for @$array;
+	}
+	[ grep { $seen->{$_} == @arrays } keys %$seen ] ;
+      },
+      union => sub {
+	my (@arrays) = @_ ;  
+	my %seen ;
+	foreach my $array (@arrays) {
+	  $seen{$_}++ for @$array;
+	}
+	[keys %seen];
+      },
+      difference => sub {
+	my ($array, @other) = @_ ;
+	my %seen ;
+	foreach my $array (@other) {
+	  $seen{$_ // ''}++ for @$array;
+	}
+	[grep { not $seen{$_ // ''} } @$array];
+      },
+      zip => sub {
+	my (@arrays) = @_ ;  
+	my $max = List::Util::reduce { $#$b > $a ? $#$b : $a} -1, @arrays ;
+	[ map {
+	  my $ix = $_;
+	  [map $_->[$ix], @arrays];
+	} 0 .. $max
+	] ;
+      },
+      index_of => sub {
+	my ($array, $value, $is_sorted) = @_ ;
+  
+	return -1 unless defined $array;
+	return List::MoreUtils::first_index { $_ eq $value } @$array;
+      },
+      last_index_of => sub {
+	my ($array, $value, $is_sorted) = @_ ;
+  
+	return -1 unless defined $array;  
+	return List::MoreUtils::last_index { $_ eq $value } @$array;
+      },
+      range => sub {
+	my ($start, $stop, $step) =
+	  @_ >= 2 ? @_ : (undef, @_, undef);
+  
+	return [] unless $stop;  
+	$start //= 0 ;
+  
+	return [$start .. $stop-1] unless defined $step;
+  
+	my $new_array = [];
+	while ($start < $stop) {
+	  push @$new_array, $start;
+	  $start += $step;
+	}
+	$new_array;
+      },
+      unique_id => sub {
+	my ($prefix) = @_ ;
+	$prefix //= '' ;
+	$prefix . ($UNIQUE_ID++);
+      },
+      identity => sub { sub { return $_[0] ; } ; },
+      times => sub {
+	my ($n, $iterator) = @_ ;
+	$iterator->($_) for 0 .. $n - 1 ;
+      },
+      template_settings => sub {
+	my (%args) = @_;
+	for (qw/interpolate evaluate/) {
+	  if (my $value = $args{$_}) {
+	    $self->{template_settings}->{$_} = $value;
+	  }
+	}
+      },
+      template => sub {
+	my ($template) = @_ ;
+ 
+	my $evaluate    = $self->{template_settings}->{evaluate};
+	my $interpolate = $self->{template_settings}->{interpolate};
+  
+	sub {
+	  my ($args) = @_;
+    
+	  my $code = q!sub {my ($args) = @_; my $_t = '';!;
+	  foreach my $arg (keys %$args) {
+	    $code .= "my \$$arg = \$args->{$arg};";
+	  }
+    
+	  $template =~ s{$interpolate}{\}; \$_t .= $1; \$_t .= q\{}g;
+	  $template =~ s{$evaluate}{\}; $1; \$_t .= q\{}g;
+    
+	  $code .= '$_t .= q{';
+	  $code .= $template;
+	  $code .= '};';
+	  $code .= 'return $_t};';
+    
+	  my $sub = eval $code;
+    
+	  return $sub->($args);
+	} ;
+      },
+      once => sub {
+	my ($func) = @_;
+	return sub {
+	  return if $ONCE{"$func"};
+    
+	  $ONCE{"$func"}++;
+	  $func->(@_);
+	};
+      },
+      wrap => sub {
+	my ($function, $wrapper) = @_ ;
+	sub { $wrapper->($function, @_) ; };
+      },
+      compose => sub {
+	my (@functions) = @_;
+  
+	return sub {
+	  my @args = @_;
+	  foreach (reverse @functions) {
+	    @args = $_->(@args);
+	  }
+    
+	  return wantarray ? @args : $args[0];
+	};
+      },
+      bind => sub {
+	my ($function, $object, @args) = @_ ;
+	return sub { $function->($object, @args, @_) ; } ;
+      },
+      has => sub {
+	my ($object, $key) = @_ ;
+	die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';  
+	exists $object->{$key} ;
+      },
+      keys => sub {
+	my ($object) = @_ ;
+	die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
+	[keys %$object];
+      },
+      values => sub {
+	my ($object) = @_ ;
+	die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
+	[values %$object];
+      },
+      functions => sub {
+	my ($object) = @_ ;
+	die 'Not a hash reference' unless ref $object && ref $object eq 'HASH';
+	[ grep { ref $object->{$_} && ref $object->{$_} eq 'CODE'; } keys %$object ] ;
+      },
+      is_equal => sub {
+	my ($object, $other) = @_ ;
+	_eq($object, $other) ? 1 : 0 ; 
+      },
+      is_empty => sub {
+	my ($object) = @_ ;
+	return 1 unless defined $object;
+	my $ref = ref $object ;
+	if (!$ref) {
+	  return 1 if $object eq '';
+	}
+	elsif ($ref eq 'HASH') {
+	  return 1 if !(keys %$object);
+	}
+	elsif ($ref eq 'ARRAY') {
+	  return 1 if @$object == 0;
+	}
+	elsif ($ref eq 'Regexp') {
+	  return 1 if $object eq qr//;
+	}
+	return 0 ;
+      },
+      is_array => sub {
+	my ($object) = @_ ;
+	defined $object && ref $object && ref $object eq 'ARRAY' ? 1 : 0 ;
+      },
+      is_string => sub {
+	my ($object) = @_ ;
+	return 0 unless defined $object && !ref $object;
+	return 0 if $self->is_number($object);
+	return 1;
+      },
+      is_number => sub {
+	my ($object) = @_ ;  
+	return 0 unless defined $object && !ref $object;
+  
+	# From JSON::PP
+	my $flags = B::svref_2object(\$object)->FLAGS;
+	( $flags & (B::SVp_IOK | B::SVp_NOK) and !($flags & B::SVp_POK) ) ? 1 : 0 ;
+      },
+      is_function => sub {
+	my ($object) = @_ ;
+	defined $object && ref $object && ref $object eq 'CODE' ? 1 : 0 ;
+      },
+      is_regexp => sub {
+	my ($object) = @_ ;
+	defined $object && ref $object && ref $object eq 'Regexp' ? 1 : 0 ;
+      },
+      is_undefined => sub {
+	my ($object) = @_ ;
+	defined $object ? 0 : 1 ;
+      },
+      is_boolean => sub {
+	my ($object) = @_;
+	Scalar::Util::blessed($object)
+	    && ( $object->isa('Underscore::_True') || $object->isa('Underscore::_False')) ? 1 : 0 ;
+      },
+    ) ;
+
+$u{$_->[0]} = $u{$_->[1]} for
+  ( ['forEach', 'each'],
+    ['contains', 'include'],
+    ['inject', 'reduce'],
+    ['foldl', 'reduce'],
+    ['foldr', 'reduce_right'],
+    ['reduceRight', 'reduce_right'],
+    ['find', 'detect'],
+    ['filter', 'select'],
+    ['every', 'all'],
+    ['some', 'any'],
+    ['sortBy', 'sort_by'],
+    ['groupBy', 'group_by'],
+    ['sortedIndex', 'sorted_index'],
+    ['toArray', 'to_array'],
+    ['tail', 'rest'],
+    ['indexOf', 'index_of'],
+    ['lastIndexOf', 'last_index_of'],
+    ['uniqueId', 'unique_id'],
+    ['isEqual', 'is_equal'],
+    ['isEmpty', 'is_empty'],
+    ['isArray', 'is_array'],
+    ['isString', 'is_string'],
+    ['isNumber', 'is_number'],
+    ['isFunction', 'is_function'],
+    ['isRegExp', 'is_regexp'],
+    ['isUndefined', 'is_undefined'],
+    ['isBoolean', 'is_boolean'],
+  ) ;
+
+$u{mixin}->(%u) ;
 
 sub chain {
-    my $self = shift;
-
+  my $self = shift ;
+  if (@_) {
+    my @args = $self->_prepare(@_);
+    return _( @args )->chain ;
+  }
+  else {
     $self->{chain} = 1;
-
     return $self;
+  }
 }
 
 sub value {
-    my $self = shift;
-
-    return wantarray ? @{$self->{args}} : $self->{args}->[0];
+  my $self = shift ;
+  return wantarray ? @{$self->{args}} : $self->{args}->[0];
 }
 
 sub _prepare {
-    my $self = shift;
-    unshift @_, @{$self->{args}} if defined $self->{args} && @{$self->{args}};
-    return @_;
+  my $self = shift;
+  unshift @_, @{$self->{args}} if defined $self->{args} && @{$self->{args}};
+  return @_;
 }
 
 sub _finalize {
-    my $self = shift;
+  my $self = shift; 
+  return ( $self->{chain} ?
+	   do { $self->{args} = [@_]; $self } :
+	   wantarray ?
+	   @_ :
+	   $_[0] ) ;
+}
 
-    return
-        $self->{chain} ? do { $self->{args} = [@_]; $self }
-      : wantarray      ? @_
-      :                  $_[0];
+sub _wrap {
+  my ($self, $sub, @args) = @_ ;
+  $self->_finalize( $sub->( $self->_prepare(@args) ) ) ;
+}
+
+sub _extend {
+  my ($include, @args) = @_ ;
+  List::Util::reduce { 
+    for my $key (keys %$b) {
+      $a->{$key} = $b->{$key} if $include->($a, $b, $key) ;
+    }
+    return $a ;
+  } @args ;
+}
+
+sub _eq {
+  my ($o1, $o2) = @_ ;
+  ( ref $o1 eq ref $o2 and
+    $o1 ~~ $o2 and 
+    ref $o1 eq 'HASH' ?
+    ( List::MoreUtils::all { _->is_equal($o1->{$_[0]}, $o2->{$_[0]}) ; } keys %$o1 ) :
+    1 ) ;
+}
+
+sub _compared {
+  my ($comparator, $list, $iterator, $context) = @_ ;
+  ( defined $iterator ?
+    ( List::Util::reduce {
+      return +{ value => $b, key => $iterator->($b) } unless defined $a ;
+      my $key = $iterator->($b) ;
+      if ($comparator->($key, $a->{key}) == $key) {
+	$a->{key} = $key ;
+	$a->{value} = $b ;
+      }
+      return $a ;
+    } undef, @$list )->{value} :
+    $comparator->(@$list) ) ;
 }
 
 package Underscore::_True;
@@ -908,7 +649,8 @@ use overload '==' => sub { $_[1] == 0 ? 1 : 0; }, fallback => 1;
 
 sub new { bless {}, $_[0] }
 
-1;
+1 ;
+
 __END__
 
 =head1 NAME
@@ -979,7 +721,7 @@ See L<http://documentcloud.github.com/underscore/#styles|original documentation>
 
 =head1 CREDITS
 
-Undescore.js authors and contributors.
+Underscore.js authors and contributors.
 
 =head1 AUTHOR
 

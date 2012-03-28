@@ -1,8 +1,4 @@
-use strict;
-use warnings;
-
 use Test::Spec;
-
 use Underscore;
 
 describe 'value' => sub {
@@ -21,7 +17,7 @@ describe 'map/flatten/reduce' => sub {
             "He sleeps all night and he works all day"
         ];
         my $counts =
-          _($lyrics)->chain->map(sub { my ($line) = @_; split '', $line; })
+          _->chain($lyrics)->map(sub { my ($line) = @_; split '', $line; })
           ->flatten->reduce(
             sub {
                 my ($hash, $l) = @_;
@@ -37,24 +33,19 @@ describe 'map/flatten/reduce' => sub {
 
 describe 'select/reject/sortBy' => sub {
     my $numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    $numbers = _($numbers)->chain->select(
-        sub {
-            my ($n) = @_;
-            return $n % 2 == 0;
-        }
-      )->reject(
-        sub {
-            my ($n) = @_;
-            return $n % 4 == 0;
-        }
-      )->sortBy(
-        sub {
-            my ($n) = @_;
-            return -$n;
-        }
-      )->value;
+    $numbers = _->chain($numbers)
+      ->select( sub {
+		  my ($n) = @_;
+		  return $n % 2 == 0;
+		} )
+	->reject( sub {
+		    my ($n) = @_;
+		    return $n % 4 == 0;
+		  } )
+	  ->sortBy( sub { $_[0] <=> $_[1] },
+		    sub { my ($n) = @_; return -$n; }, )->value;
     is_deeply($numbers, [10, 6, 2]);
-};
+} ;
 
 describe 'reverse/concat/unshift/pop/map' => sub {
     my $numbers = [1, 2, 3, 4, 5];

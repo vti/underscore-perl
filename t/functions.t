@@ -1,8 +1,4 @@
-use strict;
-use warnings;
-
 use Test::Spec;
-
 use Underscore;
 
 describe 'bind' => sub {
@@ -37,13 +33,12 @@ describe 'bind' => sub {
         is($func->('moe'), 'hello: moe', );
     };
 
-    #it 'the function was completely applied in advance' => sub {
-    #    my $func = _->bind($func, {}, 'curly');
-    #    is($func->(), 'hello: curly');
-    #};
+    it 'the function was completely applied in advance' => sub {
+      my $func = _->bind(sub { 'hello: ' . $_[1] }, {}, 'curly');
+      is($func->(), 'hello: curly');
+    };
 
-    it
-      'the function was partially applied in advance and can accept multiple arguments'
+    it 'the function was partially applied in advance and can accept multiple arguments'
       => sub {
         my $func = sub {
             my ($this, $salutation, $firstname, $lastname) = @_;
@@ -153,6 +148,13 @@ describe 'bind' => sub {
 
 describe 'once' => sub {
     it 'should be called once' => sub {
+        my $num = 0;
+        my $increment = _->once(sub { $num++; });
+        $increment->();
+        $increment->();
+        is($num, 1);
+    };
+    it 'should be called once, with different function' => sub {
         my $num = 0;
         my $increment = _->once(sub { $num++; });
         $increment->();

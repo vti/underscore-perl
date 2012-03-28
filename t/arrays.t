@@ -1,8 +1,4 @@
-use strict;
-use warnings;
-
 use Test::Spec;
-
 use Underscore;
 
 describe 'first' => sub {
@@ -15,11 +11,11 @@ describe 'first' => sub {
     };
 
     it 'can pass an index to first' => sub {
-        is(join(', ', @{_->first([1, 2, 3], 0)}), "");
+        is_deeply(_->first([1, 2, 3], 0), []);
     };
 
     it 'can pass an index to first' => sub {
-        is(join(', ', @{_->first([1, 2, 3], 2)}), '1, 2');
+        is_deeply(_->first([1, 2, 3], 2), [1,2]);
     };
 
     it 'works on an arguments object.' => sub {
@@ -28,37 +24,39 @@ describe 'first' => sub {
         is($result, 4);
     };
 
-    # TODO
-    #it 'works well with _.map' => sub {
-    #    my $result = _->map([[1, 2, 3], [1, 2, 3]], _->first);
-    #    is(join(',', @$result), '1,1');
-    #};
+    it 'works well with _.map' => sub {
+       my $result = _->map([[1, 2, 3], [1, 2, 3]], sub { _->first($_[0]) });
+       is_deeply($result, [1,1]);
+    };
 };
 
 describe 'rest' => sub {
     it 'working rest()' => sub {
         my $numbers = [1, 2, 3, 4];
-        is(join(', ', @{_->rest($numbers)}), '2, 3, 4');
-        is(join(', ', @{_->rest($numbers, 0)}), '1, 2, 3, 4');
-        is(join(', ', @{_->rest($numbers, 2)}), '3, 4');
+        is_deeply(_->rest($numbers), [2..4]);
+        is_deeply(_->rest($numbers, 0), [1..4]);
+        is_deeply(_->rest($numbers, 2), [3,4]);
     };
 
     it 'aliased as tail and works on arguments object' => sub {
         my $cb = sub { _([@_])->tail; };
         my $result = $cb->(1, 2, 3, 4);
-        is(join(', ', @$result), '2, 3, 4');
+        is_deeply($result, [2..4]);
     };
 
- # TODO
- #it 'works well with _.map' => sub {
- #    my $result = _->map([[1,2,3],[1,2,3]], _.rest);
- #    equals(_.flatten(result).join(','), '2,3,2,3', 'works well with _.map');
- #};
+    it 'works well with _.map' => sub {
+      my $result = _->map([[1,2,3],[1,2,3]], sub { _->rest($_[0]) } ) ;
+      is_deeply _->flatten($result), [2, 3, 2, 3] ;
+    } ;
 };
 
 describe 'last' => sub {
     it 'can pull out the last element of an array' => sub {
         is(_->last([1, 2, 3]), 3);
+    };
+
+    it 'has optional count argument' => sub {
+        is_deeply(_->last([1, 2, 3, 21], 2), [3, 21]);
     };
 
     it 'works on an arguments object' => sub {
@@ -85,26 +83,26 @@ describe 'compact' => sub {
 describe 'flatten' => sub {
     it 'can flatten nested arrays' => sub {
         my $list = [1, [2], [3, [[[4]]]]];
-        is(join(', ', @{_->flatten($list)}), '1, 2, 3, 4');
+        is_deeply(_->flatten($list), [1..4]);
     };
 
     it 'works on an arguments object' => sub {
         my $cb = sub { _([@_])->flatten };
         my $result = $cb->([1, [2], [3, [[[4]]]]]);
-        is(join(', ', @$result), '1, 2, 3, 4');
+        is_deeply($result, [1..4]);
     };
 };
 
 describe 'without' => sub {
     it 'can remove all instances of an object' => sub {
         my $list = [1, 2, 1, 0, 3, 1, 4];
-        is(join(', ', @{_->without($list, 0, 1)}), '2, 3, 4');
+        is_deeply(_->without($list, 0, 1), [2..4]);
     };
 
     it 'works on an arguments object' => sub {
         my $cb = sub { _->without(@_, 0, 1) };
         my $result = $cb->([1, 2, 1, 0, 3, 1, 4]);
-        is(join(', ', @$result), '2, 3, 4');
+        is_deeply($result, [2..4]);
     };
 
     it 'uses real object identity for comparisons.' => sub {
@@ -117,18 +115,18 @@ describe 'without' => sub {
 describe 'uniq' => sub {
     it 'can find the unique values of an unsorted array' => sub {
         my $list = [1, 2, 1, 3, 1, 4];
-        is(join(', ', @{_->uniq($list)}), '1, 2, 3, 4');
+        is_deeply(_->uniq($list), [1..4]);
     };
 
     it 'can find the unique values of a sorted array faster' => sub {
         my $list = [1, 1, 1, 2, 2, 3];
-        is(join(', ', @{_->uniq($list, _->true)}), '1, 2, 3',);
+        is_deeply(_->uniq($list, _->true), [1..3],);
     };
 
     it 'works on an arguments object' => sub {
         my $cb = sub { _->uniq([@_]) };
         my $result = $cb->(1, 2, 3, 4);
-        is(join(', ', @$result), '1, 2, 3, 4');
+        is_deeply($result, [1..4]);
     };
 };
 
@@ -167,23 +165,30 @@ describe 'difference' => sub {
         my $result = _->difference([1, 2, 3], [2, 30, 40]);
         is_deeply([sort @$result], [1, 3]);
     };
+    it 'works with chain()' => sub {
+        my $result = _->chain([1, 2, 3], [2, 30, 40])->difference->value;
+        is_deeply([sort @$result], [1, 3]);
+    };
+    it 'also handles undef values' => sub {
+        my $result = _->difference([undef, 2, 3], [2, 30, 40]);
+        is_deeply([sort map { $_ // ':' } @$result], [3, ':']);
+    };
 };
 
 describe 'zip' => sub {
-    it 'zipped together arrays of different lengths' => sub {
-        my $names = ['moe', 'larry', 'curly'];
-        my $ages  = [30,    40,      50];
+    it 'handles arrays of different lengths' => sub {
+        my $names   = ['moe', 'larry', 'curly'];
+        my $ages    = [30,    40,      50];
         my $leaders = [_->true];
         my $stooges = _->zip($names, $ages, $leaders);
         is_deeply($stooges,
-            ['moe', 30, _->true, 'larry', 40, undef, 'curly', 50, undef]);
+            [['moe', 30, _->true], ['larry', 40, undef], ['curly', 50, undef]]);
     };
 };
 
 describe 'indexOf' => sub {
 
-    # TODO fix description
-    it 'can compute indexOf, even without the native function' => sub {
+    it 'basic usage' => sub {
         my $numbers = [1, 2, 3];
         is(_->indexOf($numbers, 2), 1);
     };
@@ -271,5 +276,11 @@ describe 'range' => sub {
         # is_deeply(_->range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
     };
 };
+
+describe shuffle => sub {
+  it 'shuffles lists, but length is invariant' => sub {
+    is _->chain([1,2,3])->shuffle->size->value, 3 ;
+  }
+} ;
 
 runtests unless caller;
