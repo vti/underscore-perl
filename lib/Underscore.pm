@@ -531,7 +531,7 @@ sub object {
                 , sub {
                     my ($o, $pair) = @_;
                     $o->{$pair->[0]} = $pair->[1];
-                    return $object;
+                    return $o;
                 }
                 , $object
         );
@@ -544,6 +544,21 @@ sub pairs {
     my ($hash) = $self->_prepare(@_);
 
     return [map { [ $_ => $hash->{$_} ] } keys %$hash ];
+}
+
+sub pick {
+    my $self = shift;
+    my ($hash, @picks) = $self->_prepare(@_);
+
+    my $object = {};
+    return _->reduce(_->flatten(\@picks)
+            , sub {
+                my ($o, $pick) = @_;
+                $o->{$pick} = $hash->{$pick};
+                return $o;
+            }
+            , {}
+    );
 }
 
 sub zip {

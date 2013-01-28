@@ -43,6 +43,18 @@ describe 'pairs' => sub {
     };
 };
 
+describe 'pick' => sub {
+    it 'can restrict properties to those named' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, 'a', 'c'), {a=>1, c=>3});
+    };
+    it 'can restrict properties to those named in an array' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a', 'c']), {a=>1, c=>3});
+    };
+    it 'can restrict properties to those named in a mix' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a'], 'c'), {a=>1, c=>3});
+    };
+};
+
 describe 'functions' => sub {
     it 'can grab the function names of any passed-in object' => sub {
         my $cb = sub {};
