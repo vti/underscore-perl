@@ -45,6 +45,7 @@ sub true  { Underscore::_True->new }
 sub false { Underscore::_False->new }
 
 sub forEach {&each}
+sub for_each {&each}
 
 sub each {
     my $self = shift;
@@ -60,6 +61,8 @@ sub each {
         $i++;
     }
 }
+
+sub collect {&map}
 
 sub map {
     my $self = shift;
@@ -125,6 +128,8 @@ sub reduce_right {
 
     return $memo;
 }
+
+sub find {&detect}
 
 sub detect {
     my $self = shift;
@@ -355,6 +360,9 @@ sub size {
     return 1;
 }
 
+sub head {&first}
+sub take {&first}
+
 sub first {
     my $self = shift;
     my ($array, $n) = $self->_prepare(@_);
@@ -362,6 +370,15 @@ sub first {
     return $array->[0] unless defined $n;
 
     return [@{$array}[0 .. $n - 1]];
+}
+
+sub initial {
+    my $self = shift;
+    my ($array, $n) = $self->_prepare(@_);
+
+    $n = scalar @$array - 1 unless defined $n;
+    
+    return $self->take($array, $n);
 }
 
 sub tail {&rest}
@@ -380,6 +397,13 @@ sub last {
     my ($array) = $self->_prepare(@_);
 
     return $array->[-1];
+}
+
+sub shuffle {
+    my $self = shift;
+    my ($array) = $self->_prepare(@_);
+
+    return [List::Util::shuffle @$array];
 }
 
 sub compact {
@@ -431,6 +455,8 @@ sub without {
 
     return $new_array;
 }
+
+sub unique {&uniq}
 
 sub uniq {
     my $self = shift;
@@ -487,6 +513,32 @@ sub difference {
     return $new_array;
 }
 
+sub object {
+    my $self = shift;
+    my (@arrays) = $self->_prepare(@_);
+
+    my $object = {};
+    my $arrays_length = scalar @arrays;
+    if ($arrays_length == 2) {
+        my ($keys, $values) = @arrays;
+        foreach my $i (0..scalar @$keys - 1) {
+            my $key   = $keys->[$i];
+            my $value = $values->[$i];
+            $object->{$key} = $value;
+        }
+    } elsif ($arrays_length == 1) {
+        _->reduce($arrays[0]
+                , sub {
+                    my ($o, $pair) = @_;
+                    $o->{$pair->[0]} = $pair->[1];
+                    return $object;
+                }
+                , $object
+        );
+    }
+    return $object;
+}
+
 sub zip {
     my $self = shift;
     my (@arrays) = $self->_prepare(@_);
@@ -501,7 +553,6 @@ sub zip {
             map $_->[$ix], @_;
           } 0 .. $max
     ];
-
 }
 
 sub indexOf {&index_of}

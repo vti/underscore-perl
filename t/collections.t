@@ -44,6 +44,20 @@ describe 'Each iterators' => sub {
         is(join(', ', @$answers), '1, 2, 3');
     };
 
+
+    it 'aliased as "for_each"' => sub {
+        my $answers = [];
+
+        _->for_each(
+            [1, 2, 3] => sub {
+                my ($num) = @_;
+
+                push @$answers, $num;
+            }
+        );
+        is(join(', ', @$answers), '1, 2, 3');
+    };
+
     it 'iterating over objects works, and ignores the object prototype.';
 
     it 'can reference the original collection from inside the iterator' =>
@@ -104,6 +118,12 @@ describe 'A map' => sub {
     it 'OO-style doubled numbers' => sub {
         my $doubled =
           _([1, 2, 3])->map(sub { my ($num) = @_; return $num * 2; });
+        is(join(', ', @$doubled), '2, 4, 6');
+    };
+
+    it 'aliased as "collect"' => sub {
+        my $doubled =
+          _([1, 2, 3])->collect(sub { my ($num) = @_; return $num * 2; });
         is(join(', ', @$doubled), '2, 4, 6');
     };
 
@@ -256,16 +276,22 @@ describe 'rightReduce' => sub {
     };
 };
 
-describe 'Detect' => sub {
+describe 'detect' => sub {
     it 'found the first "2" and broke the loop' => sub {
         my $result =
           _->detect([1, 2, 3] => sub { my ($num) = @_; return $num * 2 == 4 }
           );
         is($result, 2);
     };
+    it 'aliased as find' => sub {
+        my $result =
+          _->find([1, 2, 3] => sub { my ($num) = @_; return $num % 2 == 0 }
+          );
+        is($result, 2);
+    };
 };
 
-describe 'detect' => sub {
+describe 'select' => sub {
     it 'selected each even number' => sub {
         my $evens =
           _->select([1, 2, 3, 4, 5, 6] =>
@@ -291,6 +317,13 @@ describe 'reject' => sub {
             }
         );
         is(join(', ', @$odds), '1, 3, 5');
+    };
+};
+
+describe 'shuffle' => sub {
+    it 'returns a list with the same number of elements' => sub {
+        my $source = [ 1, 2, 3 ];
+        is(scalar @{_->shuffle($source)}, scalar @$source);
     };
 };
 

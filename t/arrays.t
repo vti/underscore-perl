@@ -28,11 +28,49 @@ describe 'first' => sub {
         is($result, 4);
     };
 
-    # TODO
-    #it 'works well with _.map' => sub {
-    #    my $result = _->map([[1, 2, 3], [1, 2, 3]], _->first);
-    #    is(join(',', @$result), '1,1');
-    #};
+    it 'aliased as "head"' => sub {
+        is(_->head([1, 2, 3]), 1);
+    };
+
+    it 'aliased as "take"' => sub {
+        is(join(', ', @{_->take([1, 2, 3], 2)}), '1, 2');
+    };
+};
+
+describe 'initial' => sub {
+    it 'can pull out all but the last element of an array' => sub {
+        is(join(', ', @{_->initial([1, 2, 3, 4, 5])}), '1, 2, 3, 4');
+    };
+
+    it 'can take an index' => sub {
+        is(join(', ', @{_->initial([1, 2, 3, 4, 5], 3)}), '1, 2, 3');
+    };
+
+    it 'handles the case of an empty array gracefully' => sub {
+        ok(!defined @{_->initial([])});
+    };
+
+    it 'handles the case of a zero index gracefully' => sub {
+        is(join(', ', @{_->initial([1, 2, 3], 0)}), '');
+    };
+
+    it 'handles the case of a negative index gracefully' => sub {
+        is(join(', ', @{_->initial([1, 2, 3], -1)}), '');
+    };
+};
+
+describe 'object' => sub {
+    it 'zips two arrays into a single hash' => sub {
+        my $result = _->object(['moe', 'larry', 'curly'], [30, 40, 50]);
+        my $expected = {moe => 30, larry => 40, curly => 50};
+        is_deeply($result, $expected);
+    };
+
+    it 'zips an array of key=value pairs into a single hash' => sub {
+        my $result = _->object([['one', 1], ['two', 2], ['three', 3]]);
+        my $expected = {one => 1, two => 2, three => 3};
+        is_deeply($result, $expected);
+    };
 };
 
 describe 'rest' => sub {
@@ -48,12 +86,6 @@ describe 'rest' => sub {
         my $result = $cb->(1, 2, 3, 4);
         is(join(', ', @$result), '2, 3, 4');
     };
-
- # TODO
- #it 'works well with _.map' => sub {
- #    my $result = _->map([[1,2,3],[1,2,3]], _.rest);
- #    equals(_.flatten(result).join(','), '2,3,2,3', 'works well with _.map');
- #};
 };
 
 describe 'last' => sub {
@@ -129,6 +161,11 @@ describe 'uniq' => sub {
         my $cb = sub { _->uniq([@_]) };
         my $result = $cb->(1, 2, 3, 4);
         is(join(', ', @$result), '1, 2, 3, 4');
+    };
+
+    it 'aliased as "unique"' => sub {
+        my $list = [1, 2, 1, 3, 1, 4];
+        is(join(', ', @{_->unique($list)}), '1, 2, 3, 4');
     };
 };
 
