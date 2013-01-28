@@ -1036,7 +1036,7 @@ loops and async programming.
 
 =head2 Implementation details
 
-Most of the functions are just wrappers around built-in functions.  Others use
+Most of the functions are just wrappers around built-in functions. Others use
 L<List::Util> and L<List::MoreUtils> modules.
 
 Numeric/String detection is done the same way L<JSON::PP> does it: by using
@@ -1050,33 +1050,36 @@ strings depending on the context.
 
 =head2 Object-Oriented and Functional Styles
 
-As original Underscore.js you can use Perl version in either an object-oriented
-or a functional style, depending on your preference. The following two lines of
-code are identical ways to double a list of numbers.
+You can use Perl version in either an object-oriented or a functional style,
+depending on your preference. The following two lines of code are identical
+ways to double a list of numbers.
 
     _->map([1, 2, 3], sub { my ($n) = @_; $n * 2; });
     _([1, 2, 3])->map(sub { my ($n) = @_; $n * 2; });
 
-See L<http://documentcloud.github.com/underscore/#styles|original documentation>
- why sometimes object-oriented style is better.
+See the L<http://documentcloud.github.com/underscore/#styles|original documentation>
+ for an explanation of why the object-oriented style can be better.
 
 =head1 DEVELOPMENT
 
 =head2 Repository
 
-    http://github.com/vti/underscore-perl
+    http://github.com/richdouglasevans/underscore-perl
 
 =head1 CREDITS
 
-Undescore.js authors and contributors.
+Undescore.js authors and contributors
+Viacheslav Tykhanovskyi
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Viacheslav Tykhanovskyi, C<vti@cpan.org>.
+Viacheslav Tykhanovskyi, C<vti@cpan.org>
+Rich Douglas Evans, C<rich.douglas.evans@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2011-2012, Viacheslav Tykhanovskyi
+Copyright (C) 2013 Rich Douglas Evans
 
 This program is free software, you can redistribute it and/or modify it under
 the terms of the Artistic License version 2.0.
