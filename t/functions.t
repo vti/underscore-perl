@@ -37,11 +37,6 @@ describe 'bind' => sub {
         is($func->('moe'), 'hello: moe', );
     };
 
-    #it 'the function was completely applied in advance' => sub {
-    #    my $func = _->bind($func, {}, 'curly');
-    #    is($func->(), 'hello: curly');
-    #};
-
     it
       'the function was partially applied in advance and can accept multiple arguments'
       => sub {
@@ -73,83 +68,6 @@ describe 'bind' => sub {
         };
     };
 };
-
-#  test("functions: bindAll", function() {
-#    var curly = {name : 'curly'}, moe = {
-#      name    : 'moe',
-#      getName : function() { return 'name: ' + this.name; },
-#      sayHi   : function() { return 'hi: ' + this.name; }
-#    };
-#    curly.getName = moe.getName;
-#    _.bindAll(moe, 'getName', 'sayHi');
-#    curly.sayHi = moe.sayHi;
-#    equals(curly.getName(), 'name: curly', 'unbound function is bound to current object');
-#    equals(curly.sayHi(), 'hi: moe', 'bound function is still bound to original object');
-#
-#    curly = {name : 'curly'};
-#    moe = {
-#      name    : 'moe',
-#      getName : function() { return 'name: ' + this.name; },
-#      sayHi   : function() { return 'hi: ' + this.name; }
-#    };
-#    _.bindAll(moe);
-#    curly.sayHi = moe.sayHi;
-#    equals(curly.sayHi(), 'hi: moe', 'calling bindAll with no arguments binds all functions to the object');
-#  });
-#
-#  test("functions: memoize", function() {
-#    var fib = function(n) {
-#      return n < 2 ? n : fib(n - 1) + fib(n - 2);
-#    };
-#    var fastFib = _.memoize(fib);
-#    equals(fib(10), 55, 'a memoized version of fibonacci produces identical results');
-#    equals(fastFib(10), 55, 'a memoized version of fibonacci produces identical results');
-#
-#    var o = function(str) {
-#      return str;
-#    };
-#    var fastO = _.memoize(o);
-#    equals(o('toString'), 'toString', 'checks hasOwnProperty');
-#    equals(fastO('toString'), 'toString', 'checks hasOwnProperty');
-#  });
-#
-#  asyncTest("functions: delay", 2, function() {
-#    var delayed = false;
-#    _.delay(function(){ delayed = true; }, 100);
-#    setTimeout(function(){ ok(!delayed, "didn't delay the function quite yet"); }, 50);
-#    setTimeout(function(){ ok(delayed, 'delayed the function'); start(); }, 150);
-#  });
-#
-#  asyncTest("functions: defer", 1, function() {
-#    var deferred = false;
-#    _.defer(function(bool){ deferred = bool; }, true);
-#    _.delay(function(){ ok(deferred, "deferred the function"); start(); }, 50);
-#  });
-#
-#  asyncTest("functions: throttle", 1, function() {
-#    var counter = 0;
-#    var incr = function(){ counter++; };
-#    var throttledIncr = _.throttle(incr, 100);
-#    throttledIncr(); throttledIncr(); throttledIncr();
-#    setTimeout(throttledIncr, 120);
-#    setTimeout(throttledIncr, 140);
-#    setTimeout(throttledIncr, 220);
-#    setTimeout(throttledIncr, 240);
-#    _.delay(function(){ ok(counter == 3, "incr was throttled"); start(); }, 400);
-#  });
-#
-#  asyncTest("functions: debounce", 1, function() {
-#    var counter = 0;
-#    var incr = function(){ counter++; };
-#    var debouncedIncr = _.debounce(incr, 50);
-#    debouncedIncr(); debouncedIncr(); debouncedIncr();
-#    setTimeout(debouncedIncr, 30);
-#    setTimeout(debouncedIncr, 60);
-#    setTimeout(debouncedIncr, 90);
-#    setTimeout(debouncedIncr, 120);
-#    setTimeout(debouncedIncr, 150);
-#    _.delay(function(){ ok(counter == 1, "incr was debounced"); start(); }, 220);
-#  });
 
 describe 'once' => sub {
     it 'should be called once' => sub {
@@ -202,20 +120,26 @@ describe 'compose' => sub {
     };
 };
 
-#  test("functions: after", function() {
-#    var testAfter = function(afterAmount, timesCalled) {
-#      var afterCalled = 0;
-#      var after = _.after(afterAmount, function() {
-#        afterCalled++;
-#      });
-#      while (timesCalled--) after();
-#      return afterCalled;
-#    };
-#
-#    equals(testAfter(5, 5), 1, "after(N) should fire after being called N times");
-#    equals(testAfter(5, 4), 0, "after(N) should not fire unless called N times");
-#  });
-#
-#});
+describe 'after' => sub {
+    my $invoke_after = sub {
+        my ($after_amount, $times_called) = @_;
+        my $after_called = 0;
+        my $after = _->after($after_amount, sub { ++$after_called; });
+        while ($times_called--) { $after->(); }
+        return $after_called;
+    };
+
+    it 'does call the subroutine after the threshold is reached' => sub {
+        is($invoke_after->(5, 5), 1);
+    };
+
+    it 'does not call the subroutine if the threshold is not reached' => sub {
+        is($invoke_after->(5, 4), 0);
+    };
+
+    it 'does continue to call the subroutine after the threshold is reached' => sub {
+        is($invoke_after->(5, 10), 6);
+    };
+};
 
 runtests unless caller;

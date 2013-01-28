@@ -679,6 +679,16 @@ sub times {
     }
 }
 
+sub after {
+    my $self = shift;
+    my ($n, $func, @args) = $self->_prepare(@_);
+
+    my $invocation_count = 0;
+    return sub {
+        return ++$invocation_count >= $n ? $func->(@args) : undef;
+    };
+}
+
 sub template_settings {
     my $self = shift;
     my (%args) = @_;
