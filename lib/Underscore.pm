@@ -539,6 +539,13 @@ sub object {
     return $object;
 }
 
+sub pairs {
+    my $self = shift;
+    my ($hash) = $self->_prepare(@_);
+
+    return [map { [ $_ => $hash->{$_} ] } keys %$hash ];
+}
+
 sub zip {
     my $self = shift;
     my (@arrays) = $self->_prepare(@_);

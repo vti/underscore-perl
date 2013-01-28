@@ -37,6 +37,12 @@ describe 'values' => sub {
     };
 };
 
+describe 'pairs' => sub {
+    it 'can convert a hash into pairs' => sub {
+        is_deeply(_->pairs({one => 1, two => 2}), [['one', 1], ['two', 2]]);
+    };
+};
+
 describe 'functions' => sub {
     it 'can grab the function names of any passed-in object' => sub {
         my $cb = sub {};
