@@ -662,6 +662,14 @@ sub unique_id {
     return $prefix . ($UNIQUE_ID++);
 }
 
+sub result {
+    my $self = shift;
+    my ($hash, $key, @args) = $self->_prepare(@_);
+
+    my $value = $hash->{$key};
+    return ref $value eq 'CODE' ? $value->(@args) : $value;
+}
+
 sub times {
     my $self = shift;
     my ($n, $iterator) = $self->_prepare(@_);
