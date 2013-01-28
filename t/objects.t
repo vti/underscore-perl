@@ -55,6 +55,21 @@ describe 'pick' => sub {
     };
 };
 
+describe 'omit' => sub {
+    it 'can omit a single key' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b'), {a=>1, c=>3});
+    };
+    it 'can omit many keys' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b', 'a'), {c=>3});
+    };
+    it 'can omit many keys in an array' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b', 'a']), {c=>3});
+    };
+    it 'can omit many keys in a mix' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b'], 'a'), {c=>3});
+    };
+};
+
 describe 'functions' => sub {
     it 'can grab the function names of any passed-in object' => sub {
         my $cb = sub {};

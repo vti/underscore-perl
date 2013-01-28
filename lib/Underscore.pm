@@ -550,14 +550,30 @@ sub pick {
     my $self = shift;
     my ($hash, @picks) = $self->_prepare(@_);
 
-    my $object = {};
-    return _->reduce(_->flatten(\@picks)
-            , sub {
-                my ($o, $pick) = @_;
-                $o->{$pick} = $hash->{$pick};
-                return $o;
-            }
-            , {}
+    return _->reduce(
+        _->flatten(\@picks)
+        , sub {
+            my ($o, $pick) = @_;
+            $o->{$pick} = $hash->{$pick};
+            return $o;
+        }
+        , {}
+    );
+}
+
+sub omit {
+    my $self = shift;
+    my ($hash, @omits) = $self->_prepare(@_);
+
+    my %omit_these = map { $_ => $_ } @{_->flatten(\@omits)};
+    return _->reduce(
+        [keys %$hash]
+        , sub {
+            my ($o, $key) = @_;
+            $o->{$key} = $hash->{$key} unless exists $omit_these{$key};
+            return $o;
+        }
+        , {}
     );
 }
 
