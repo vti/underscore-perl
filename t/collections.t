@@ -127,12 +127,6 @@ describe 'A map' => sub {
         is(join(', ', @$doubled), '2, 4, 6');
     };
 
-#    var ids = _.map($('div.underscore-test').children(), function(n){ return n.id; });
-#    ok(_.include(ids, 'qunit-header'), 'can use collection methods on NodeLists');
-#
-#    var ids = _.map(document.images, function(n){ return n.id; });
-#    ok(ids[0] == 'chart_image', 'can use collection methods on HTMLCollections');
-
     it 'handles a null properly' => sub {
         my $ifnull = _->map(undef, sub { });
         ok(_->isArray($ifnull) && @$ifnull == 0);
@@ -329,13 +323,9 @@ describe 'shuffle' => sub {
 
 describe 'all' => sub {
 
-    #it 'the empty set' => sub {
-    #    ok(_->all([], _->identity));
-    #};
-
-    #it 'one false value' => sub {
-    #    ok(!_->all([1, 0, 1], _->identity));
-    #};
+    it 'given an empty array returns 1' => sub {
+       ok(_->all([], sub { die 'Iterator must not be called for the empty array.' }));
+    };
 
     it 'even numbers' => sub {
         ok( _->all(
@@ -351,9 +341,9 @@ describe 'all' => sub {
         );
     };
 
-    #it 'aliased every' => sub {
-    #    ok(_->every([1, 1, 1], _->identity););
-    #};
+    it 'aliased every' => sub {
+       ok(_->every([1, 1, 1], sub { shift == 1; }));
+    };
 };
 
 describe 'any' => sub {
@@ -405,24 +395,6 @@ describe 'include' => sub {
         ok(_([1, 2, 3])->include(2));
     };
 };
-
-#describe 'invoke' => sub {
-#    my $list;
-#    my $result;
-#
-#    before each => sub {
-#        my $list = [[5, 1, 7], [3, 2, 1]];
-#        my $result = _->invoke($list, 'sort');
-#    };
-#
-#    it 'first array sorted' => sub {
-#        is(join(', ', $result->[0]), '1, 5, 7');
-#    };
-#
-#    it 'second array sorted' => sub {
-#        is(join(', ', $result->[1]), '1, 2, 3');
-#    };
-#};
 
 describe 'invoke w/ function reference' => sub {
     my $list;
