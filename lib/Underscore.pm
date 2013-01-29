@@ -648,8 +648,12 @@ sub range {
 
     return [$start .. $stop - 1] unless defined $step;
 
+    my $test = ($start < $stop)
+        ? sub { $start < $stop }
+        : sub { $start > $stop };
+
     my $new_array = [];
-    while ($start < $stop) {
+    while ($test->()) {
         push @$new_array, $start;
         $start += $step;
     }

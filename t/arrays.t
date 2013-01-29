@@ -219,8 +219,7 @@ describe 'zip' => sub {
 
 describe 'indexOf' => sub {
 
-    # TODO fix description
-    it 'can compute indexOf, even without the native function' => sub {
+    it 'can compute indexOf' => sub {
         my $numbers = [1, 2, 3];
         is(_->indexOf($numbers, 2), 1);
     };
@@ -303,9 +302,8 @@ describe 'range' => sub {
         # is_deeply(_->range(12, 7, -2), [12, 10, 8]);
     };
 
-    # WTF? Python?
     it 'final example in the Python docs' => sub {
-        # is_deeply(_->range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
+        is_deeply(_->range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
     };
 };
 
