@@ -507,6 +507,12 @@ describe 'countBy' => sub {
         is($parity->{true}, 2);
         is($parity->{false}, 3);
     };
+    it 'is aliased as count_by' => sub {
+        my $parity = _->count_by([1, 2, 3, 4, 5],
+            sub { my ($num) = @_; return $num == 3 ? 'true' : 'false'; });
+        is($parity->{true}, 1);
+        is($parity->{false}, 4);
+    };
 };
 
 describe 'sortedIndex' => sub {
