@@ -287,44 +287,46 @@ sub pop : method {
     return $self->_finalize($result);
 }
 
-sub groupBy {&group_by}
-
-sub group_by {
+sub _partition {
     my $self = shift;
-    my ($list, $iterator) = $self->_prepare(@_);
+    my ($list, $iterator, $behaviour) = $self->_prepare(@_);
 
     my $result = {};
     foreach (@{$list}) {
         my $group = $iterator->($_);
+        $behaviour->($result, $group, $_);
+    }
+    return $self->_finalize($result);
+}
+
+sub groupBy {&group_by}
+
+sub group_by {
+    my $self = shift;
+    return $self->_partition(@_, sub {
+        my ($result, $group, $o) = @_;
         if (exists $result->{$group}) {
-            push @{$result->{$group}}, $_;
+            push @{$result->{$group}}, $o;
         }
         else {
-            $result->{$group} = [$_];
+            $result->{$group} = [$o];
         }
-    }
-
-    return $self->_finalize($result);
+    });
 }
 
 sub countBy {&count_by}
 
 sub count_by {
     my $self = shift;
-    my ($list, $iterator) = $self->_prepare(@_);
-
-    my $result = {};
-    foreach (@{$list}) {
-        my $group = $iterator->($_);
+    return $self->_partition(@_, sub {
+        my ($result, $group, $o) = @_;
         if (exists $result->{$group}) {
             $result->{$group} = $result->{$group} + 1;
         }
         else {
             $result->{$group} = 1;
         }
-    }
-
-    return $self->_finalize($result);
+    });
 }
 
 sub sortedIndex {&sorted_index}
