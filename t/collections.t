@@ -438,11 +438,10 @@ describe 'min' => sub {
         is(_->min([1, 2, 3]), 1);
     };
 
-    # TODO
-    #it 'can perform a computation-based min' => sub {
-    #    my $neg = _->min([1, 2, 3], sub { my ($num) = @_; return -$num; });
-    #    is($neg, 3);
-    #};
+    it 'can perform a computation-based min' => sub {
+       my $neg = _->min([1, 2, 3], sub { my ($num) = @_; return -$num; });
+       is($neg, 3);
+    };
 };
 
 describe 'sort' => sub {

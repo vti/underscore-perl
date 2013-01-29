@@ -213,24 +213,34 @@ sub pluck {
     return $result;
 }
 
+sub _minmax {
+    my $self = shift;
+    my ($list, $iterator, $context, $behaviour) = $self->_prepare(@_);
+
+    my $computed_list = [map {
+        { original => $_, computed => $iterator->($_, $context) }
+    } @$list];
+
+    return _->reduce(
+        $computed_list
+        , sub {
+            my ($memo, $e) = @_;
+            return $behaviour->($memo, $e);
+        }
+        , $computed_list->[0]
+    )->{original};
+}
+
 sub max {
     my $self = shift;
     my ($list, $iterator, $context) = $self->_prepare(@_);
 
     return List::Util::max(@$list) unless defined $iterator;
 
-    my $computed_list = [map {
-        { original => $_, computed => $iterator->($_) }
-    } @$list];
-
-    return _->reduce(
-        $computed_list
-        , sub {
-            my ($max, $e) = @_;
-            return ($e->{computed} > $max->{computed}) ? $e: $max;
-        }
-        , $computed_list->[0]
-    )->{original};
+    return _->_minmax($list, $iterator, $context, sub {
+        my ($max, $e) = @_;
+        return ($e->{computed} > $max->{computed}) ? $e: $max;
+    });
 }
 
 sub min {
@@ -239,7 +249,10 @@ sub min {
 
     return List::Util::min(@$list) unless defined $iterator;
 
-    return List::Util::min(map { $iterator->($_) } @$list);
+    return _->_minmax($list, $iterator, $context, sub {
+        my ($min, $e) = @_;
+        return ($e->{computed} < $min->{computed}) ? $e: $min;
+    });
 }
 
 sub sort : method {
