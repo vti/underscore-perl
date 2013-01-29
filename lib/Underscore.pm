@@ -98,8 +98,6 @@ sub reduce {
 
     die 'TypeError' if !defined $array && !defined $memo;
 
-    # TODO
-    $memo = 0 unless defined $memo;
     return $memo unless defined $array;
 
     foreach (@$array) {
