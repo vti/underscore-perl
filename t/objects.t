@@ -147,23 +147,15 @@ describe 'clone' => sub {
 };
 
 # TODO
-#describe 'isEqual' => sub {
-#    it 'should compare object deeply' => sub {
-#        my $moe   = {name => 'moe', lucky => [13, 27, 34]};
-#        my $clone = {name => 'moe', lucky => [13, 27, 34]};
-#        ok($moe ne $clone);
-#        ok(_->isEqual($moe, $clone));
-#        ok(_($moe)->isEqual($clone));
-#    };
-#};
-#    ok(_.isEqual((/hello/ig), (/hello/ig)), 'identical regexes are equal');
-#    ok(!_.isEqual(null, [1]), 'a falsy is never equal to a truthy');
-#    ok(_.isEqual({isEqual: function () { return true; }}, {}), 'first object implements `isEqual`');
-#    ok(_.isEqual({}, {isEqual: function () { return true; }}), 'second object implements `isEqual`');
-#    ok(!_.isEqual({x: 1, y: undefined}, {x: 1, z: 2}), 'objects with the same number of undefined keys are not equal');
-#    ok(!_.isEqual(_({x: 1, y: undefined}).chain(), _({x: 1, z: 2}).chain()), 'wrapped objects are not equal');
-#    equals(_({x: 1, y: 2}).chain().isEqual(_({x: 1, y: 2}).chain()).value(), true, 'wrapped objects are equal');
-#  });
+describe 'isEqual' => sub {
+   it 'should compare object deeply' => sub {
+       my $moe   = {name => 'moe', lucky => [13, 27, 34]};
+       my $clone = {name => 'moe', lucky => [13, 27, 34]};
+       ok($moe ne $clone);
+       ok(_->isEqual($moe, $clone));
+       ok(_($moe)->isEqual($clone));
+   };
+};
 
 describe 'isEmpty' => sub {
     it 'should check if value is empty' => sub {
@@ -178,22 +170,6 @@ describe 'isEmpty' => sub {
         ok(!_->isEmpty('moe'));
     };
 };
-
-# TODO
-#  test("objects: isObject", function() {
-#    ok(_.isObject(arguments), 'the arguments object is object');
-#    ok(_.isObject([1, 2, 3]), 'and arrays');
-#    ok(_.isObject($('html')[0]), 'and DOM element');
-#    ok(_.isObject(iElement), 'even from another frame');
-#    ok(_.isObject(function () {}), 'and functions');
-#    ok(_.isObject(iFunction), 'even from another frame');
-#    ok(!_.isObject(null), 'but not null');
-#    ok(!_.isObject(undefined), 'and not undefined');
-#    ok(!_.isObject('string'), 'and not string');
-#    ok(!_.isObject(12), 'and not number');
-#    ok(!_.isObject(true), 'and not boolean');
-#    ok(_.isObject(new String('string')), 'but new String()');
-#  });
 
 describe 'isArray' => sub {
     it 'should check if value is an array' => sub {
@@ -252,20 +228,5 @@ describe 'isUndefined' => sub {
         ok(_->isUndefined(undef), 'undefined is undefined');
     };
 };
-
-#  test("objects: tap", function() {
-#    var intercepted = null;
-#    var interceptor = function(obj) { intercepted = obj; };
-#    var returned = _.tap(1, interceptor);
-#    equals(intercepted, 1, "passes tapped object to interceptor");
-#    equals(returned, 1, "returns tapped object");
-#
-#    returned = _([1,2,3]).chain().
-#      map(function(n){ return n * 2; }).
-#      max().
-#      tap(interceptor).
-#      value();
-#    ok(returned == 6 && intercepted == 6, 'can use tapped objects in a chain');
-#  });
 
 runtests unless caller;
