@@ -236,21 +236,21 @@ describe 'indexOf' => sub {
     it '35 is not in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 35;
-        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
+        my $index   = _->indexOf($numbers, $num, _->true);
         is($index, -1);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 40;
-        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
+        my $index   = _->indexOf($numbers, $num, _->true);
         is($index, 3);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [1, 40, 40, 40, 40, 40, 40, 40, 50, 60, 70];
         my $num = 40;
-        my $index = _->indexOf($numbers, $num, _->true);      # TODO sorted
+        my $index = _->indexOf($numbers, $num, _->true);
         is($index, 1);
     };
 };
@@ -299,7 +299,7 @@ describe 'range' => sub {
     };
 
     it 'range with three arguments a & b & c, a > b, c < 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b' => sub {
-        # is_deeply(_->range(12, 7, -2), [12, 10, 8]);
+        is_deeply(_->range(12, 7, -2), [12, 10, 8]);
     };
 
     it 'final example in the Python docs' => sub {
