@@ -219,7 +219,18 @@ sub max {
 
     return List::Util::max(@$list) unless defined $iterator;
 
-    return List::Util::max(map { $iterator->($_) } @$list);
+    my $computed_list = [map {
+        { original => $_, computed => $iterator->($_) }
+    } @$list];
+
+    return _->reduce(
+        $computed_list
+        , sub {
+            my ($max, $e) = @_;
+            return ($e->{computed} > $max->{computed}) ? $e: $max;
+        }
+        , $computed_list->[0]
+    )->{original};
 }
 
 sub min {

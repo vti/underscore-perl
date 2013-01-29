@@ -427,11 +427,10 @@ describe 'max' => sub {
         is(_->max([1, 2, 3]), 3);
     };
 
-    # TODO
-    #it 'can perform a computation-based max' => sub {
-    #    my $neg = _->max([1, 2, 3], sub { my ($num) = @_; return -$num; });
-    #    is($neg, 1);
-    #};
+    it 'can perform a computation-based max' => sub {
+       my $neg = _->max([1, 2, 3], sub { my ($num) = @_; return -$num; });
+       is($neg, 1);
+    };
 };
 
 describe 'min' => sub {
