@@ -183,7 +183,6 @@ describe 'Reduce' => sub {
         my $sum = _->reduce(
             [1, 2, 3] => sub {
                 my ($sum, $num) = @_;
-
                 return $sum + $num;
             }
         );
@@ -212,11 +211,10 @@ describe 'Reduce' => sub {
         $sparseArray->[100] = 10;
         $sparseArray->[200] = 20;
 
-        is( _->reduce(
-                $sparseArray => sub { my ($a, $b) = @_; return $a + $b }
-            ),
-            30
+        my $result = _->reduce(
+            $sparseArray => sub { my ($a, $b) = @_; return $a + $b }
         );
+        is($result, 30);
     };
 };
 
@@ -247,7 +245,6 @@ describe 'rightReduce' => sub {
         my $list = _->foldr(
             ['foo', 'bar', 'baz'] => sub {
                 my ($memo, $str) = @_;
-
                 return $memo . $str;
             }
         );

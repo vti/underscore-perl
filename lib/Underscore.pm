@@ -86,7 +86,7 @@ sub include {
         return (List::Util::first { $_ eq $value } values %$list) ? 1 : 0;
     }
 
-    die 'WTF?';
+    die 'Include only supports arrays and hashes';
 }
 
 sub inject {&reduce}
@@ -96,14 +96,21 @@ sub reduce {
     my $self = shift;
     my ($array, $iterator, $memo, $context) = $self->_prepare(@_);
 
-    die 'TypeError' if !defined $array && !defined $memo;
+    die 'No list or memo' if !defined $array && !defined $memo;
 
     return $memo unless defined $array;
 
-    foreach (@$array) {
-        $memo = $iterator->($memo, $_, $context) if defined $_;
-    }
+    my $initial = defined $memo;
 
+    foreach (@$array) {
+        if (!$initial && defined $_) {
+            $memo = $_;
+            $initial = 1;
+        } else {
+            $memo = $iterator->($memo, $_, $context) if defined $_;
+        }
+    }
+    die 'No memo' if !$initial;
     return $self->_finalize($memo);
 }
 
@@ -113,16 +120,12 @@ sub reduceRight {&reduce_right}
 sub reduce_right {
     my $self = shift;
     my ($array, $iterator, $memo, $context) = $self->_prepare(@_);
-
-    die 'TypeError' if !defined $array && !defined $memo;
+    
+    die 'No list or memo' if !defined $array && !defined $memo;
 
     return $memo unless defined $array;
 
-    foreach (reverse @$array) {
-        $memo = $iterator->($memo, $_, $context) if defined $_;
-    }
-
-    return $memo;
+    return _->reduce([reverse @$array], $iterator, $memo, $context);
 }
 
 sub find {&detect}
