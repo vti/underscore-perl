@@ -116,8 +116,6 @@ sub reduce_right {
 
     die 'TypeError' if !defined $array && !defined $memo;
 
-    # TODO
-    $memo = '' unless defined $memo;
     return $memo unless defined $array;
 
     foreach (reverse @$array) {
