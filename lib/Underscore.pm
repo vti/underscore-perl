@@ -307,6 +307,26 @@ sub group_by {
     return $self->_finalize($result);
 }
 
+sub countBy {&count_by}
+
+sub count_by {
+    my $self = shift;
+    my ($list, $iterator) = $self->_prepare(@_);
+
+    my $result = {};
+    foreach (@{$list}) {
+        my $group = $iterator->($_);
+        if (exists $result->{$group}) {
+            $result->{$group} = $result->{$group} + 1;
+        }
+        else {
+            $result->{$group} = 1;
+        }
+    }
+
+    return $self->_finalize($result);
+}
+
 sub sortedIndex {&sorted_index}
 
 sub sorted_index {

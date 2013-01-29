@@ -500,6 +500,15 @@ describe 'groupBy' => sub {
     };
 };
 
+describe 'countBy' => sub {
+    it 'returns a count for the number of objects in each group' => sub {
+        my $parity = _->countBy([1, 2, 3, 4, 5],
+            sub { my ($num) = @_; return $num % 2 == 0 ? 'true' : 'false'; });
+        is($parity->{true}, 2);
+        is($parity->{false}, 3);
+    };
+};
+
 describe 'sortedIndex' => sub {
     it '35 should be inserted at index 3' => sub {
         my $numbers = [10, 20, 30, 40, 50];
