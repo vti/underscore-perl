@@ -86,7 +86,7 @@ sub include {
         return (List::Util::first { $_ eq $value } values %$list) ? 1 : 0;
     }
 
-    die 'Include only supports arrays and hashes';
+    die 'include only supports arrays and hashes';
 }
 
 sub inject {&reduce}

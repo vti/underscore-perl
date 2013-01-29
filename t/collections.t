@@ -483,7 +483,7 @@ describe 'countBy' => sub {
 };
 
 describe 'sortedIndex' => sub {
-    it '35 should be inserted at index 3' => sub {
+    it '35 must be inserted at index 3' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 35;
         my $index   = _->sortedIndex($numbers, $num);
