@@ -58,9 +58,14 @@ describe 'select/reject/sortBy' => sub {
 
 describe 'reverse/concat/unshift/pop/map' => sub {
     my $numbers = [1, 2, 3, 4, 5];
-    $numbers =
-      _($numbers)->chain->reverse->concat([5, 5, 5])->unshift(17)
-      ->pop->map(sub { my ($n) = @_; return $n * 2; })->value;
+    $numbers = _($numbers)
+        ->chain
+        ->reverse
+        ->concat([5, 5, 5])
+        ->unshift(17)
+        ->pop
+        ->map(sub { my ($n) = @_; return $n * 2; })
+        ->value;
     is_deeply($numbers, [34, 10, 8, 6, 4, 2, 10, 10]);
 };
 
