@@ -45,7 +45,6 @@ sub true  { Underscore::_True->new }
 sub false { Underscore::_False->new }
 
 sub forEach {&each}
-sub for_each {&each}
 
 sub each {
     my $self = shift;

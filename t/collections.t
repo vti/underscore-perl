@@ -44,20 +44,6 @@ describe 'Each iterators' => sub {
         is(join(', ', @$answers), '1, 2, 3');
     };
 
-
-    it 'aliased as "for_each"' => sub {
-        my $answers = [];
-
-        _->for_each(
-            [1, 2, 3] => sub {
-                my ($num) = @_;
-
-                push @$answers, $num;
-            }
-        );
-        is(join(', ', @$answers), '1, 2, 3');
-    };
-
     it 'iterating over objects works, and ignores the object prototype.';
 
     it 'can reference the original collection from inside the iterator' =>
