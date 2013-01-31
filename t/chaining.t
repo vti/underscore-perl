@@ -6,14 +6,14 @@ use Test::Spec;
 use Underscore;
 
 describe 'value' => sub {
-    it 'should return value' => sub {
+    it 'must return value' => sub {
         is(_(1)->value, 1);
         is_deeply(_([1, 2, 3])->value, [1, 2, 3]);
     };
 };
 
 describe 'map/flatten/reduce' => sub {
-    it 'should count all the letters in the song' => sub {
+    it 'must count all the letters in the song' => sub {
         my $lyrics = [
             "I'm a lumberjack and I'm okay",
             "I sleep all night and I work all day",

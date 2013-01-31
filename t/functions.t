@@ -70,7 +70,7 @@ describe 'bind' => sub {
 };
 
 describe 'once' => sub {
-    it 'should be called once' => sub {
+    it 'must be called once' => sub {
         my $num = 0;
         my $increment = _->once(sub { $num++; });
         $increment->();

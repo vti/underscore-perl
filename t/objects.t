@@ -113,14 +113,14 @@ describe 'defaults' => sub {
         $options = {zero => 0, one => 1, empty => "", string => "string"};
     };
 
-    it 'should set defaults values' => sub {
+    it 'must set defaults values' => sub {
         _->defaults($options, {zero => 1, one => 10, twenty => 20});
         is($options->{zero},   0);
         is($options->{one},    1);
         is($options->{twenty}, 20);
     };
 
-    it 'should set multiple defaults' => sub {
+    it 'must set multiple defaults' => sub {
         _->defaults(
             $options,
             {empty => "full"},
@@ -133,7 +133,7 @@ describe 'defaults' => sub {
 };
 
 describe 'clone' => sub {
-    it 'should make a shallow copy' => sub {
+    it 'must make a shallow copy' => sub {
         my $moe = {name => 'moe', lucky => [13, 27, 34]};
         my $clone = _->clone($moe);
         is($clone->{name}, 'moe');
@@ -148,7 +148,7 @@ describe 'clone' => sub {
 
 # TODO
 describe 'isEqual' => sub {
-   it 'should compare object deeply' => sub {
+   it 'must compare object deeply' => sub {
        my $moe   = {name => 'moe', lucky => [13, 27, 34]};
        my $clone = {name => 'moe', lucky => [13, 27, 34]};
        ok($moe ne $clone);
@@ -158,7 +158,7 @@ describe 'isEqual' => sub {
 };
 
 describe 'isEmpty' => sub {
-    it 'should check if value is empty' => sub {
+    it 'must check if value is empty' => sub {
         ok(!_([1])->isEmpty());
         ok(_->isEmpty([]));
         ok(!_->isEmpty({one => 1}));
@@ -172,20 +172,20 @@ describe 'isEmpty' => sub {
 };
 
 describe 'isArray' => sub {
-    it 'should check if value is an array' => sub {
+    it 'must check if value is an array' => sub {
         ok(_->isArray([1, 2, 3]));
     };
 };
 
 describe 'isString' => sub {
-    it 'should check if value is a string' => sub {
+    it 'must check if value is a string' => sub {
         ok(_->isString('hello'));
         ok(!_->isString(1));
     };
 };
 
 describe 'isNumber' => sub {
-    it 'should check if value is a number' => sub {
+    it 'must check if value is a number' => sub {
         ok(!_->isNumber('string'));
         ok(!_->isNumber(undef));
         ok(_->isNumber(3 * 4 - 7 / 10));
@@ -193,7 +193,7 @@ describe 'isNumber' => sub {
 };
 
 describe 'isBoolean' => sub {
-    it 'should check if value is boolean' => sub {
+    it 'must check if value is boolean' => sub {
         ok(!_->isBoolean(2),        'a number is not a boolean');
         ok(!_->isBoolean("string"), 'a string is not a boolean');
         ok(!_->isBoolean("false"),  'the string "false" is not a boolean');
@@ -205,7 +205,7 @@ describe 'isBoolean' => sub {
 };
 
 describe 'isFunction' => sub {
-    it 'should check if value is a function' => sub {
+    it 'must check if value is a function' => sub {
         ok(!_->isFunction([1, 2, 3]));
         ok(!_->isFunction('moe'));
         ok(_->isFunction(sub {}));
@@ -213,14 +213,14 @@ describe 'isFunction' => sub {
 };
 
 describe 'isRegExp' => sub {
-    it 'should check if value is a regexp' => sub {
+    it 'must check if value is a regexp' => sub {
         ok(!_->isRegExp(sub { }));
         ok(_->isRegExp(qr/identity/));
     };
 };
 
 describe 'isUndefined' => sub {
-    it 'should check if value is undefined' => sub {
+    it 'must check if value is undefined' => sub {
         ok(!_->isUndefined(1), 'numbers are defined');
         ok(!_->isUndefined(_->false), 'false is defined');
         ok(!_->isUndefined(0), '0 is defined');
