@@ -88,10 +88,22 @@ describe 'A map' => sub {
         is(join(', ', @$doubles), '2, 4, 6');
     };
 
+    it 'multiplied by index' => sub {
+        my $result = _->map(
+            [1, 2, 3] => sub {
+                my ($num, $index) = @_;
+
+                return $num * $index;
+            }
+        );
+
+        is(join(', ', @$result), '1, 4, 9');
+    };
+
     it 'tripled numbers with context' => sub {
         my $triples = _->map(
             [1, 2, 3] => sub {
-                my ($num, $key, $context) = @_;
+                my ($num, $index, $context) = @_;
 
                 return $num * $context->{multiplier};
             },
@@ -116,6 +128,22 @@ describe 'A map' => sub {
     it 'handles a null properly' => sub {
         my $ifnull = _->map(undef, sub { });
         ok(_->isArray($ifnull) && @$ifnull == 0);
+    };
+
+    it 'if context is undefined then list becomes context' => sub {
+        my $list_as_ctx = undef;
+        my $list = [1, 2, 3];
+        my $triples = _->map(
+            $list => sub {
+                my ($num, $index, $context) = @_;
+                $list_as_ctx = $context unless defined $list_as_ctx;
+                return $num * 3;
+            }
+            # no explicit context
+        );
+
+        is(join(', ', @$triples), '3, 6, 9');
+        is_deeply($list_as_ctx, $list);
     };
 };
 

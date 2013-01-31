@@ -67,7 +67,10 @@ sub map {
     my $self = shift;
     my ($array, $cb, $context) = $self->_prepare(@_);
 
-    my $result = [map { $cb->($_, undef, $context) } @$array];
+    $context = $array unless defined $context;
+
+    my $index = 0;
+    my $result = [map { $cb->($_, ++$index, $context) } @$array];
 
     return $self->_finalize($result);
 }
