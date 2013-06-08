@@ -463,13 +463,19 @@ describe 'sort' => sub {
 };
 
 describe 'sortBy' => sub {
+    my $people =
+          [{name => 'curly', age => 30}, {name => 'rab', age => 10}, {name => 'moe', age => 50}];
     it 'stooges sorted by age' => sub {
-        my $people =
-          [{name => 'curly', age => 50}, {name => 'moe', age => 30}];
-        $people =
-          _->sortBy($people,
+        $people = _->sortBy($people,
             sub { my ($person) = @_; return $person->{age}; });
-        is(join(', ', @{_->pluck($people, 'name')}), 'moe, curly');
+        is(join(', ', @{_->pluck($people, 'name')}), 'rab, curly, moe');
+    };
+    it 'stooges sorted by name' => sub {
+        $people = _->sortBy($people,
+            sub { my ($person) = @_; return $person->{name}; },
+            undef,
+            sub { my ($a, $b) = @_; $a cmp $b; });
+        is(join(', ', @{_->pluck($people, 'name')}), 'curly, moe, rab');
     };
 };
 

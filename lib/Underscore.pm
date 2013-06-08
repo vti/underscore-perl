@@ -267,9 +267,11 @@ sub sortBy {&sort_by}
 
 sub sort_by {
     my $self = shift;
-    my ($list, $iterator, $context) = $self->_prepare(@_);
+    my ($list, $iterator, $context, $comparator) = $self->_prepare(@_);
 
-    my $result = [sort { $a cmp $iterator->($b) } @$list];
+    my $cmp = defined $comparator ? $comparator : sub { my ($x, $y) = @_; $x <=> $y } ;
+
+    my $result = [sort { $cmp->($iterator->($a, $context), $iterator->($b, $context)) } @$list];
 
     return $self->_finalize($result);
 }
