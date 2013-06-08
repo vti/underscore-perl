@@ -86,4 +86,9 @@ describe 'select/pluck' => sub {
     is(join(', ', @{$result}), 'rab, moe');
 };
 
+describe 'sort/map' => sub {
+    my $result = _([1, 2, 3, 4])->chain->sort->map(sub{ $_[0] + 1 })->value;
+    is(join(', ', @{$result}), '2, 3, 4, 5');
+};
+
 runtests unless caller;
