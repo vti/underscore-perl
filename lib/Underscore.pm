@@ -211,7 +211,7 @@ sub pluck {
         push @$result, $_->{$key};
     }
 
-    return $result;
+    return $self->_finalize($result);
 }
 
 sub _minmax {

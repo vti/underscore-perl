@@ -69,4 +69,21 @@ describe 'reverse/concat/unshift/pop/map' => sub {
     is_deeply($numbers, [34, 10, 8, 6, 4, 2, 10, 10]);
 };
 
+describe 'select/pluck' => sub {
+    my $people = [
+        {name => 'curly', age => 31},
+        {name => 'rab', age => 10},
+        {name => 'moe', age => 50}
+    ];
+
+    my $result = _($people)->chain->select(
+        sub {
+            my $person = shift;
+            return ($person->{age} % 2) == 0;
+        }
+    )->pluck('name')->value;
+
+    is(join(', ', @{$result}), 'rab, moe');
+};
+
 runtests unless caller;
