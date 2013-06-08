@@ -260,7 +260,7 @@ sub sort : method {
     my $self = shift;
     my ($list) = $self->_prepare(@_);
 
-    return [sort @$list];
+    return $self->_finalize([sort @$list]);
 }
 
 sub sortBy {&sort_by}
