@@ -6,14 +6,14 @@ use Test::Spec;
 use Underscore;
 
 describe 'value' => sub {
-    it 'should return value' => sub {
+    it 'must return value' => sub {
         is(_(1)->value, 1);
         is_deeply(_([1, 2, 3])->value, [1, 2, 3]);
     };
 };
 
 describe 'map/flatten/reduce' => sub {
-    it 'should count all the letters in the song' => sub {
+    it 'must count all the letters in the song' => sub {
         my $lyrics = [
             "I'm a lumberjack and I'm okay",
             "I sleep all night and I work all day",
@@ -58,10 +58,37 @@ describe 'select/reject/sortBy' => sub {
 
 describe 'reverse/concat/unshift/pop/map' => sub {
     my $numbers = [1, 2, 3, 4, 5];
-    $numbers =
-      _($numbers)->chain->reverse->concat([5, 5, 5])->unshift(17)
-      ->pop->map(sub { my ($n) = @_; return $n * 2; })->value;
+    $numbers = _($numbers)
+        ->chain
+        ->reverse
+        ->concat([5, 5, 5])
+        ->unshift(17)
+        ->pop
+        ->map(sub { my ($n) = @_; return $n * 2; })
+        ->value;
     is_deeply($numbers, [34, 10, 8, 6, 4, 2, 10, 10]);
+};
+
+describe 'select/pluck' => sub {
+    my $people = [
+        {name => 'curly', age => 31},
+        {name => 'rab', age => 10},
+        {name => 'moe', age => 50}
+    ];
+
+    my $result = _($people)->chain->select(
+        sub {
+            my $person = shift;
+            return ($person->{age} % 2) == 0;
+        }
+    )->pluck('name')->value;
+
+    is(join(', ', @{$result}), 'rab, moe');
+};
+
+describe 'sort/map' => sub {
+    my $result = _([1, 2, 3, 4])->chain->sort->map(sub{ $_[0] + 1 })->value;
+    is(join(', ', @{$result}), '2, 3, 4, 5');
 };
 
 runtests unless caller;

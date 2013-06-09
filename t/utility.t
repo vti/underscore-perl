@@ -5,25 +5,25 @@ use Test::Spec;
 
 use Underscore;
 
-#  test("utility: noConflict", function() {
-#    var underscore = _.noConflict();
-#    ok(underscore.isUndefined(_), "The '_' variable has been returned to its previous state.");
-#    var intersection = underscore.intersect([-1, 0, 1, 2], [1, 2, 3, 4]);
-#    equals(intersection.join(', '), '1, 2', 'but the intersection function still works');
-#    window._ = underscore;
-#  });
-
-#  test("utility: identity", function() {
-#    var moe = {name : 'moe'};
-#    equals(_.identity(moe), moe, 'moe is the same as his identity');
-#  });
-
 describe 'uniqueId' => sub {
     it 'can generate a globally-unique stream of ids' => sub {
         my $ids = [];
         my $i = 0;
         while ($i++ < 100) { push @$ids, _->uniqueId }
         is(@{_->uniq($ids)}, @$ids);
+    };
+};
+
+describe 'result' => sub {
+    it 'calls a subroutine reference' => sub {
+        my $expected = 'yay';
+        my $o = { code => sub { return $expected } };
+        is(_->result($o, 'code'), $expected);
+    };
+    it 'returns the value of a non-subroutine key' => sub {
+        my $expected = 'yay';
+        my $o = { key => $expected };
+        is(_->result($o, 'key'), $expected);
     };
 };
 
@@ -83,17 +83,6 @@ describe 'template' => sub {
             {people => {moe => "Moe", larry => "Larry", curly => "Curly"}});
         is($result, "<ul><li>Curly</li><li>Larry</li><li>Moe</li></ul>",);
     };
-
-#    var namespaceCollisionTemplate = _.template("<%= pageCount %> <%= thumbnails[pageCount] %> <% _.each(thumbnails, function(p) { %><div class=\"thumbnail\" rel=\"<%= p %>\"></div><% }); %>");
-#    result = namespaceCollisionTemplate({
-#      pageCount: 3,
-#      thumbnails: {
-#        1: "p1-thumbnail.gif",
-#        2: "p2-thumbnail.gif",
-#        3: "p3-thumbnail.gif"
-#      }
-#    });
-#    equals(result, "3 p3-thumbnail.gif <div class=\"thumbnail\" rel=\"p1-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p2-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p3-thumbnail.gif\"></div>");
 
     it 'simple' => sub {
         my $noInterpolateTemplate = _->template(

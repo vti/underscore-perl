@@ -15,6 +15,8 @@
                                 \ \_\
                                  \/_/
 
-Underscore-perl is a Perl clone of a popular JavaScript library underscore.js.
+Underscore-perl is a Perl clone of the popular JavaScript
+library [Underscore.js](http://underscorejs.org/).
 
-For a nicer (Underscore.js-like) page see http://vti.github.com/underscore-perl.
+For a nicer (Underscore.js-like) page see
+http://vti.github.com/underscore-perl.

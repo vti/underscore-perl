@@ -28,11 +28,49 @@ describe 'first' => sub {
         is($result, 4);
     };
 
-    # TODO
-    #it 'works well with _.map' => sub {
-    #    my $result = _->map([[1, 2, 3], [1, 2, 3]], _->first);
-    #    is(join(',', @$result), '1,1');
-    #};
+    it 'aliased as "head"' => sub {
+        is(_->head([1, 2, 3]), 1);
+    };
+
+    it 'aliased as "take"' => sub {
+        is(join(', ', @{_->take([1, 2, 3], 2)}), '1, 2');
+    };
+};
+
+describe 'initial' => sub {
+    it 'can pull out all but the last element of an array' => sub {
+        is(join(', ', @{_->initial([1, 2, 3, 4, 5])}), '1, 2, 3, 4');
+    };
+
+    it 'can take an index' => sub {
+        is(join(', ', @{_->initial([1, 2, 3, 4, 5], 3)}), '1, 2, 3');
+    };
+
+    it 'handles the case of an empty array gracefully' => sub {
+        ok(!defined @{_->initial([])});
+    };
+
+    it 'handles the case of a zero index gracefully' => sub {
+        is(join(', ', @{_->initial([1, 2, 3], 0)}), '');
+    };
+
+    it 'handles the case of a negative index gracefully' => sub {
+        is(join(', ', @{_->initial([1, 2, 3], -1)}), '');
+    };
+};
+
+describe 'object' => sub {
+    it 'zips two arrays into a single hash' => sub {
+        my $result = _->object(['moe', 'larry', 'curly'], [30, 40, 50]);
+        my $expected = {moe => 30, larry => 40, curly => 50};
+        is_deeply($result, $expected);
+    };
+
+    it 'zips an array of key=value pairs into a single hash' => sub {
+        my $result = _->object([['one', 1], ['two', 2], ['three', 3]]);
+        my $expected = {one => 1, two => 2, three => 3};
+        is_deeply($result, $expected);
+    };
 };
 
 describe 'rest' => sub {
@@ -48,12 +86,6 @@ describe 'rest' => sub {
         my $result = $cb->(1, 2, 3, 4);
         is(join(', ', @$result), '2, 3, 4');
     };
-
- # TODO
- #it 'works well with _.map' => sub {
- #    my $result = _->map([[1,2,3],[1,2,3]], _.rest);
- #    equals(_.flatten(result).join(','), '2,3,2,3', 'works well with _.map');
- #};
 };
 
 describe 'last' => sub {
@@ -130,6 +162,11 @@ describe 'uniq' => sub {
         my $result = $cb->(1, 2, 3, 4);
         is(join(', ', @$result), '1, 2, 3, 4');
     };
+
+    it 'aliased as "unique"' => sub {
+        my $list = [1, 2, 1, 3, 1, 4];
+        is(join(', ', @{_->unique($list)}), '1, 2, 3, 4');
+    };
 };
 
 describe 'intersection' => sub {
@@ -182,8 +219,7 @@ describe 'zip' => sub {
 
 describe 'indexOf' => sub {
 
-    # TODO fix description
-    it 'can compute indexOf, even without the native function' => sub {
+    it 'can compute indexOf' => sub {
         my $numbers = [1, 2, 3];
         is(_->indexOf($numbers, 2), 1);
     };
@@ -200,21 +236,21 @@ describe 'indexOf' => sub {
     it '35 is not in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 35;
-        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
+        my $index   = _->indexOf($numbers, $num, _->true);
         is($index, -1);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 40;
-        my $index   = _->indexOf($numbers, $num, _->true);    # TODO sorted
+        my $index   = _->indexOf($numbers, $num, _->true);
         is($index, 3);
     };
 
     it '40 is in the list' => sub {
         my $numbers = [1, 40, 40, 40, 40, 40, 40, 40, 50, 60, 70];
         my $num = 40;
-        my $index = _->indexOf($numbers, $num, _->true);      # TODO sorted
+        my $index = _->indexOf($numbers, $num, _->true);
         is($index, 1);
     };
 };
@@ -263,12 +299,11 @@ describe 'range' => sub {
     };
 
     it 'range with three arguments a & b & c, a > b, c < 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b' => sub {
-        # is_deeply(_->range(12, 7, -2), [12, 10, 8]);
+        is_deeply(_->range(12, 7, -2), [12, 10, 8]);
     };
 
-    # WTF? Python?
     it 'final example in the Python docs' => sub {
-        # is_deeply(_->range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
+        is_deeply(_->range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
     };
 };
 

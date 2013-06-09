@@ -1,5 +1,9 @@
 Revision history for perl module Underscore
 
+0.03 2013-01-29
+
+ - Update to underscore.js 1.4.3 API
+
 0.02 2012-02-08
 
  - Import _ function by an arbitrary name
