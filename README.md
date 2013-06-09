@@ -1,5 +1,22 @@
-A Perl clone of the popular JavaScript library [Underscore.js](http://underscorejs.org/).
+                   __
+                  /\ \
+ __  __    ___    \_\ \     __   _ __   ____    ___    ___   _ __    __
+/\ \/\ \ /' _ `\  /'_` \  /'__`\/\`'__\/',__\  /'___\ / __`\/\`'__\/'__`\
+\ \ \_\ \/\ \/\ \/\ \ \ \/\  __/\ \ \//\__, `\/\ \__//\ \ \ \ \ \//\  __/
+ \ \____/\ \_\ \_\ \___,_\ \____\\ \_\\/\____/\ \____\ \____/\ \_\\ \____\
+  \/___/  \/_/\/_/\/__,_ /\/____/ \/_/ \/___/  \/____/\/___/  \/_/ \/____/
+                                                   ___
+             __                                   /\_ \
+            /\_\    ___       _____      __   _ __\//\ \
+            \/\ \ /' _ `\    /\ '__`\  /'__`\/\`'__\\ \ \
+             \ \ \/\ \/\ \   \ \ \ \ \/\  __/\ \ \/  \_\ \_
+              \ \_\ \_\ \_\   \ \ ,__/\ \____\\ \_\  /\____\
+               \/_/\/_/\/_/    \ \ \/  \/____/ \/_/  \/____/
+                                \ \_\
+                                 \/_/
 
-Forked from [vti](https://github.com/vti)'s original [Underscore-perl](https://github.com/vti/underscore-perl) clone.
+Underscore-perl is a Perl clone of the popular JavaScript
+library [Underscore.js](http://underscorejs.org/).
 
-- updated to reflect `v1.4.3` of underscore.js.
+For a nicer (Underscore.js-like) page see
+http://vti.github.com/underscore-perl.

@@ -1135,7 +1135,7 @@ See the L<http://documentcloud.github.com/underscore/#styles|original documentat
 
 =head2 Repository
 
-    http://github.com/richdouglasevans/underscore-perl
+    http://github.com/vti/underscore-perl
 
 =head1 CREDITS
 
