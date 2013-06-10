@@ -88,10 +88,22 @@ describe 'A map' => sub {
         is(join(', ', @$doubles), '2, 4, 6');
     };
 
+    it 'multiplied by index' => sub {
+        my $result = _->map(
+            [1, 2, 3] => sub {
+                my ($num, $index) = @_;
+
+                return $num * $index;
+            }
+        );
+
+        is(join(', ', @$result), '1, 4, 9');
+    };
+
     it 'tripled numbers with context' => sub {
         my $triples = _->map(
             [1, 2, 3] => sub {
-                my ($num, $key, $context) = @_;
+                my ($num, $index, $context) = @_;
 
                 return $num * $context->{multiplier};
             },
@@ -107,15 +119,31 @@ describe 'A map' => sub {
         is(join(', ', @$doubled), '2, 4, 6');
     };
 
-#    var ids = _.map($('div.underscore-test').children(), function(n){ return n.id; });
-#    ok(_.include(ids, 'qunit-header'), 'can use collection methods on NodeLists');
-#
-#    var ids = _.map(document.images, function(n){ return n.id; });
-#    ok(ids[0] == 'chart_image', 'can use collection methods on HTMLCollections');
+    it 'aliased as "collect"' => sub {
+        my $doubled =
+          _([1, 2, 3])->collect(sub { my ($num) = @_; return $num * 2; });
+        is(join(', ', @$doubled), '2, 4, 6');
+    };
 
     it 'handles a null properly' => sub {
         my $ifnull = _->map(undef, sub { });
         ok(_->isArray($ifnull) && @$ifnull == 0);
+    };
+
+    it 'if context is undefined then list becomes context' => sub {
+        my $list_as_ctx = undef;
+        my $list = [1, 2, 3];
+        my $triples = _->map(
+            $list => sub {
+                my ($num, $index, $context) = @_;
+                $list_as_ctx = $context unless defined $list_as_ctx;
+                return $num * 3;
+            }
+            # no explicit context
+        );
+
+        is(join(', ', @$triples), '3, 6, 9');
+        is_deeply($list_as_ctx, $list);
     };
 };
 
@@ -169,7 +197,6 @@ describe 'Reduce' => sub {
         my $sum = _->reduce(
             [1, 2, 3] => sub {
                 my ($sum, $num) = @_;
-
                 return $sum + $num;
             }
         );
@@ -198,11 +225,10 @@ describe 'Reduce' => sub {
         $sparseArray->[100] = 10;
         $sparseArray->[200] = 20;
 
-        is( _->reduce(
-                $sparseArray => sub { my ($a, $b) = @_; return $a + $b }
-            ),
-            30
+        my $result = _->reduce(
+            $sparseArray => sub { my ($a, $b) = @_; return $a + $b }
         );
+        is($result, 30);
     };
 };
 
@@ -233,7 +259,6 @@ describe 'rightReduce' => sub {
         my $list = _->foldr(
             ['foo', 'bar', 'baz'] => sub {
                 my ($memo, $str) = @_;
-
                 return $memo . $str;
             }
         );
@@ -256,16 +281,22 @@ describe 'rightReduce' => sub {
     };
 };
 
-describe 'Detect' => sub {
+describe 'detect' => sub {
     it 'found the first "2" and broke the loop' => sub {
         my $result =
           _->detect([1, 2, 3] => sub { my ($num) = @_; return $num * 2 == 4 }
           );
         is($result, 2);
     };
+    it 'aliased as find' => sub {
+        my $result =
+          _->find([1, 2, 3] => sub { my ($num) = @_; return $num % 2 == 0 }
+          );
+        is($result, 2);
+    };
 };
 
-describe 'detect' => sub {
+describe 'select' => sub {
     it 'selected each even number' => sub {
         my $evens =
           _->select([1, 2, 3, 4, 5, 6] =>
@@ -294,15 +325,18 @@ describe 'reject' => sub {
     };
 };
 
+describe 'shuffle' => sub {
+    it 'returns a list with the same number of elements' => sub {
+        my $source = [ 1, 2, 3 ];
+        is(scalar @{_->shuffle($source)}, scalar @$source);
+    };
+};
+
 describe 'all' => sub {
 
-    #it 'the empty set' => sub {
-    #    ok(_->all([], _->identity));
-    #};
-
-    #it 'one false value' => sub {
-    #    ok(!_->all([1, 0, 1], _->identity));
-    #};
+    it 'given an empty array returns 1' => sub {
+       ok(_->all([], sub { die 'Iterator must not be called for the empty array.' }));
+    };
 
     it 'even numbers' => sub {
         ok( _->all(
@@ -318,9 +352,9 @@ describe 'all' => sub {
         );
     };
 
-    #it 'aliased every' => sub {
-    #    ok(_->every([1, 1, 1], _->identity););
-    #};
+    it 'aliased every' => sub {
+       ok(_->every([1, 1, 1], sub { shift == 1; }));
+    };
 };
 
 describe 'any' => sub {
@@ -373,24 +407,6 @@ describe 'include' => sub {
     };
 };
 
-#describe 'invoke' => sub {
-#    my $list;
-#    my $result;
-#
-#    before each => sub {
-#        my $list = [[5, 1, 7], [3, 2, 1]];
-#        my $result = _->invoke($list, 'sort');
-#    };
-#
-#    it 'first array sorted' => sub {
-#        is(join(', ', $result->[0]), '1, 5, 7');
-#    };
-#
-#    it 'second array sorted' => sub {
-#        is(join(', ', $result->[1]), '1, 2, 3');
-#    };
-#};
-
 describe 'invoke w/ function reference' => sub {
     my $list;
     my $result;
@@ -422,11 +438,10 @@ describe 'max' => sub {
         is(_->max([1, 2, 3]), 3);
     };
 
-    # TODO
-    #it 'can perform a computation-based max' => sub {
-    #    my $neg = _->max([1, 2, 3], sub { my ($num) = @_; return -$num; });
-    #    is($neg, 1);
-    #};
+    it 'can perform a computation-based max' => sub {
+       my $neg = _->max([1, 2, 3], sub { my ($num) = @_; return -$num; });
+       is($neg, 1);
+    };
 };
 
 describe 'min' => sub {
@@ -434,11 +449,10 @@ describe 'min' => sub {
         is(_->min([1, 2, 3]), 1);
     };
 
-    # TODO
-    #it 'can perform a computation-based min' => sub {
-    #    my $neg = _->min([1, 2, 3], sub { my ($num) = @_; return -$num; });
-    #    is($neg, 3);
-    #};
+    it 'can perform a computation-based min' => sub {
+       my $neg = _->min([1, 2, 3], sub { my ($num) = @_; return -$num; });
+       is($neg, 3);
+    };
 };
 
 describe 'sort' => sub {
@@ -449,13 +463,19 @@ describe 'sort' => sub {
 };
 
 describe 'sortBy' => sub {
+    my $people =
+          [{name => 'curly', age => 30}, {name => 'rab', age => 10}, {name => 'moe', age => 50}];
     it 'stooges sorted by age' => sub {
-        my $people =
-          [{name => 'curly', age => 50}, {name => 'moe', age => 30}];
-        $people =
-          _->sortBy($people,
+        $people = _->sortBy($people,
             sub { my ($person) = @_; return $person->{age}; });
-        is(join(', ', @{_->pluck($people, 'name')}), 'moe, curly');
+        is(join(', ', @{_->pluck($people, 'name')}), 'rab, curly, moe');
+    };
+    it 'stooges sorted by name' => sub {
+        $people = _->sortBy($people,
+            sub { my ($person) = @_; return $person->{name}; },
+            undef,
+            sub { my ($a, $b) = @_; $a cmp $b; });
+        is(join(', ', @{_->pluck($people, 'name')}), 'curly, moe, rab');
     };
 };
 
@@ -467,8 +487,23 @@ describe 'groupBy' => sub {
     };
 };
 
+describe 'countBy' => sub {
+    it 'returns a count for the number of objects in each group' => sub {
+        my $parity = _->countBy([1, 2, 3, 4, 5],
+            sub { my ($num) = @_; return $num % 2 == 0 ? 'true' : 'false'; });
+        is($parity->{true}, 2);
+        is($parity->{false}, 3);
+    };
+    it 'is aliased as count_by' => sub {
+        my $parity = _->count_by([1, 2, 3, 4, 5],
+            sub { my ($num) = @_; return $num == 3 ? 'true' : 'false'; });
+        is($parity->{true}, 1);
+        is($parity->{false}, 4);
+    };
+};
+
 describe 'sortedIndex' => sub {
-    it '35 should be inserted at index 3' => sub {
+    it '35 must be inserted at index 3' => sub {
         my $numbers = [10, 20, 30, 40, 50];
         my $num     = 35;
         my $index   = _->sortedIndex($numbers, $num);

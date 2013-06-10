@@ -37,6 +37,39 @@ describe 'values' => sub {
     };
 };
 
+describe 'pairs' => sub {
+    it 'can convert a hash into pairs' => sub {
+        is_deeply(_->pairs({one => 1, two => 2}), [['one', 1], ['two', 2]]);
+    };
+};
+
+describe 'pick' => sub {
+    it 'can restrict properties to those named' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, 'a', 'c'), {a=>1, c=>3});
+    };
+    it 'can restrict properties to those named in an array' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a', 'c']), {a=>1, c=>3});
+    };
+    it 'can restrict properties to those named in a mix' => sub {
+        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a'], 'c'), {a=>1, c=>3});
+    };
+};
+
+describe 'omit' => sub {
+    it 'can omit a single key' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b'), {a=>1, c=>3});
+    };
+    it 'can omit many keys' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b', 'a'), {c=>3});
+    };
+    it 'can omit many keys in an array' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b', 'a']), {c=>3});
+    };
+    it 'can omit many keys in a mix' => sub {
+        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b'], 'a'), {c=>3});
+    };
+};
+
 describe 'functions' => sub {
     it 'can grab the function names of any passed-in object' => sub {
         my $cb = sub {};
@@ -80,14 +113,14 @@ describe 'defaults' => sub {
         $options = {zero => 0, one => 1, empty => "", string => "string"};
     };
 
-    it 'should set defaults values' => sub {
+    it 'must set defaults values' => sub {
         _->defaults($options, {zero => 1, one => 10, twenty => 20});
         is($options->{zero},   0);
         is($options->{one},    1);
         is($options->{twenty}, 20);
     };
 
-    it 'should set multiple defaults' => sub {
+    it 'must set multiple defaults' => sub {
         _->defaults(
             $options,
             {empty => "full"},
@@ -100,7 +133,7 @@ describe 'defaults' => sub {
 };
 
 describe 'clone' => sub {
-    it 'should make a shallow copy' => sub {
+    it 'must make a shallow copy' => sub {
         my $moe = {name => 'moe', lucky => [13, 27, 34]};
         my $clone = _->clone($moe);
         is($clone->{name}, 'moe');
@@ -114,26 +147,18 @@ describe 'clone' => sub {
 };
 
 # TODO
-#describe 'isEqual' => sub {
-#    it 'should compare object deeply' => sub {
-#        my $moe   = {name => 'moe', lucky => [13, 27, 34]};
-#        my $clone = {name => 'moe', lucky => [13, 27, 34]};
-#        ok($moe ne $clone);
-#        ok(_->isEqual($moe, $clone));
-#        ok(_($moe)->isEqual($clone));
-#    };
-#};
-#    ok(_.isEqual((/hello/ig), (/hello/ig)), 'identical regexes are equal');
-#    ok(!_.isEqual(null, [1]), 'a falsy is never equal to a truthy');
-#    ok(_.isEqual({isEqual: function () { return true; }}, {}), 'first object implements `isEqual`');
-#    ok(_.isEqual({}, {isEqual: function () { return true; }}), 'second object implements `isEqual`');
-#    ok(!_.isEqual({x: 1, y: undefined}, {x: 1, z: 2}), 'objects with the same number of undefined keys are not equal');
-#    ok(!_.isEqual(_({x: 1, y: undefined}).chain(), _({x: 1, z: 2}).chain()), 'wrapped objects are not equal');
-#    equals(_({x: 1, y: 2}).chain().isEqual(_({x: 1, y: 2}).chain()).value(), true, 'wrapped objects are equal');
-#  });
+describe 'isEqual' => sub {
+   it 'must compare object deeply' => sub {
+       my $moe   = {name => 'moe', lucky => [13, 27, 34]};
+       my $clone = {name => 'moe', lucky => [13, 27, 34]};
+       ok($moe ne $clone);
+       ok(_->isEqual($moe, $clone));
+       ok(_($moe)->isEqual($clone));
+   };
+};
 
 describe 'isEmpty' => sub {
-    it 'should check if value is empty' => sub {
+    it 'must check if value is empty' => sub {
         ok(!_([1])->isEmpty());
         ok(_->isEmpty([]));
         ok(!_->isEmpty({one => 1}));
@@ -146,37 +171,21 @@ describe 'isEmpty' => sub {
     };
 };
 
-# TODO
-#  test("objects: isObject", function() {
-#    ok(_.isObject(arguments), 'the arguments object is object');
-#    ok(_.isObject([1, 2, 3]), 'and arrays');
-#    ok(_.isObject($('html')[0]), 'and DOM element');
-#    ok(_.isObject(iElement), 'even from another frame');
-#    ok(_.isObject(function () {}), 'and functions');
-#    ok(_.isObject(iFunction), 'even from another frame');
-#    ok(!_.isObject(null), 'but not null');
-#    ok(!_.isObject(undefined), 'and not undefined');
-#    ok(!_.isObject('string'), 'and not string');
-#    ok(!_.isObject(12), 'and not number');
-#    ok(!_.isObject(true), 'and not boolean');
-#    ok(_.isObject(new String('string')), 'but new String()');
-#  });
-
 describe 'isArray' => sub {
-    it 'should check if value is an array' => sub {
+    it 'must check if value is an array' => sub {
         ok(_->isArray([1, 2, 3]));
     };
 };
 
 describe 'isString' => sub {
-    it 'should check if value is a string' => sub {
+    it 'must check if value is a string' => sub {
         ok(_->isString('hello'));
         ok(!_->isString(1));
     };
 };
 
 describe 'isNumber' => sub {
-    it 'should check if value is a number' => sub {
+    it 'must check if value is a number' => sub {
         ok(!_->isNumber('string'));
         ok(!_->isNumber(undef));
         ok(_->isNumber(3 * 4 - 7 / 10));
@@ -184,7 +193,7 @@ describe 'isNumber' => sub {
 };
 
 describe 'isBoolean' => sub {
-    it 'should check if value is boolean' => sub {
+    it 'must check if value is boolean' => sub {
         ok(!_->isBoolean(2),        'a number is not a boolean');
         ok(!_->isBoolean("string"), 'a string is not a boolean');
         ok(!_->isBoolean("false"),  'the string "false" is not a boolean');
@@ -196,7 +205,7 @@ describe 'isBoolean' => sub {
 };
 
 describe 'isFunction' => sub {
-    it 'should check if value is a function' => sub {
+    it 'must check if value is a function' => sub {
         ok(!_->isFunction([1, 2, 3]));
         ok(!_->isFunction('moe'));
         ok(_->isFunction(sub {}));
@@ -204,14 +213,14 @@ describe 'isFunction' => sub {
 };
 
 describe 'isRegExp' => sub {
-    it 'should check if value is a regexp' => sub {
+    it 'must check if value is a regexp' => sub {
         ok(!_->isRegExp(sub { }));
         ok(_->isRegExp(qr/identity/));
     };
 };
 
 describe 'isUndefined' => sub {
-    it 'should check if value is undefined' => sub {
+    it 'must check if value is undefined' => sub {
         ok(!_->isUndefined(1), 'numbers are defined');
         ok(!_->isUndefined(_->false), 'false is defined');
         ok(!_->isUndefined(0), '0 is defined');
@@ -219,20 +228,5 @@ describe 'isUndefined' => sub {
         ok(_->isUndefined(undef), 'undefined is undefined');
     };
 };
-
-#  test("objects: tap", function() {
-#    var intercepted = null;
-#    var interceptor = function(obj) { intercepted = obj; };
-#    var returned = _.tap(1, interceptor);
-#    equals(intercepted, 1, "passes tapped object to interceptor");
-#    equals(returned, 1, "returns tapped object");
-#
-#    returned = _([1,2,3]).chain().
-#      map(function(n){ return n * 2; }).
-#      max().
-#      tap(interceptor).
-#      value();
-#    ok(returned == 6 && intercepted == 6, 'can use tapped objects in a chain');
-#  });
 
 runtests unless caller;
