@@ -1087,6 +1087,22 @@ L<Underscore> Perl is a clone of a popular JavaScript library
 L<http://github.com/documentcloud/underscore|Underscore.js>. Why? Because Perl
 is awesome. And because we can!
 
+                      /\ \
+     __  __    ___    \_\ \     __   _ __   ____    ___    ___   _ __    __
+    /\ \/\ \ /' _ `\  /'_` \  /'__`\/\`'__\/',__\  /'___\ / __`\/\`'__\/'__`\
+    \ \ \_\ \/\ \/\ \/\ \ \ \/\  __/\ \ \//\__, `\/\ \__//\ \ \ \ \ \//\  __/
+     \ \____/\ \_\ \_\ \___,_\ \____\\ \_\\/\____/\ \____\ \____/\ \_\\ \____\
+      \/___/  \/_/\/_/\/__,_ /\/____/ \/_/ \/___/  \/____/\/___/  \/_/ \/____/
+                                                       ___
+                 __                                   /\_ \
+                /\_\    ___       _____      __   _ __\//\ \
+                \/\ \ /' _ `\    /\ '__`\  /'__`\/\`'__\\ \ \
+                 \ \ \/\ \/\ \   \ \ \ \ \/\  __/\ \ \/  \_\ \_
+                  \ \_\ \_\ \_\   \ \ ,__/\ \____\\ \_\  /\____\
+                   \/_/\/_/\/_/    \ \ \/  \/____/ \/_/  \/____/
+                                    \ \_\
+                                     \/_/
+
 This document describes the differences. For the full introduction see original
 page of L<http://documentcloud.github.com/underscore/|Underscore.js>.
 
