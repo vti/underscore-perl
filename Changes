@@ -1,6 +1,6 @@
 Revision history for perl module Underscore
 
-0.03 2013-07-17
+{{$NEXT}}
 
  - Add test for count_by alias
  - Add test for sort used in chain
