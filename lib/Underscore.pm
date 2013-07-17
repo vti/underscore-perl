@@ -1073,7 +1073,7 @@ __END__
 
 =head1 NAME
 
-Underscore
+Underscore - Perl port of Underscore.js
 
 =head1 SYNOPSIS
 
