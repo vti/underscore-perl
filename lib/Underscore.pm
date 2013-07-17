@@ -178,7 +178,7 @@ sub any {
     my $self = shift;
     my ($list, $iterator, $context) = $self->_prepare(@_);
 
-    return 0 unless defined @$list;
+    return 0 unless @$list;
 
     foreach (@$list) {
         return 1 if $iterator ? $iterator->($_) : $_;

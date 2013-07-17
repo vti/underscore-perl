@@ -47,7 +47,7 @@ describe 'initial' => sub {
     };
 
     it 'handles the case of an empty array gracefully' => sub {
-        ok(!defined @{_->initial([])});
+        ok(!@{_->initial([])});
     };
 
     it 'handles the case of a zero index gracefully' => sub {
