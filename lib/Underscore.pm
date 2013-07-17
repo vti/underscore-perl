@@ -1144,9 +1144,6 @@ ways to double a list of numbers.
     _->map([1, 2, 3], sub { my ($n) = @_; $n * 2; });
     _([1, 2, 3])->map(sub { my ($n) = @_; $n * 2; });
 
-See the L<http://documentcloud.github.com/underscore/#styles|original documentation>
- for an explanation of why the object-oriented style can be better.
-
 =head1 DEVELOPMENT
 
 =head2 Repository
