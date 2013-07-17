@@ -122,7 +122,7 @@ sub reduceRight {&reduce_right}
 sub reduce_right {
     my $self = shift;
     my ($array, $iterator, $memo, $context) = $self->_prepare(@_);
-    
+
     die 'No list or memo' if !defined $array && !defined $memo;
 
     return $memo unless defined $array;
@@ -1140,7 +1140,6 @@ See the L<http://documentcloud.github.com/underscore/#styles|original documentat
 =head1 CREDITS
 
 Undescore.js authors and contributors
-Viacheslav Tykhanovskyi
 
 =head1 AUTHORS
 
