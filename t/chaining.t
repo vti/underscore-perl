@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Spec;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'value' => sub {
     it 'must return value' => sub {

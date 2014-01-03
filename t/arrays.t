@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Spec;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'first' => sub {
     it 'can pull out the first element of an array' => sub {

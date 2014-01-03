@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Spec;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'bind' => sub {
     it 'can bind a function to a context' => sub {

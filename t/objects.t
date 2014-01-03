@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Spec;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'keys' => sub {
     it 'can extract the keys from an object' => sub {

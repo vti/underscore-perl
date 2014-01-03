@@ -1,4 +1,4 @@
-package Underscore;
+package UnderscoreJS;
 
 use strict;
 use warnings;
@@ -41,8 +41,8 @@ sub new {
     return $self;
 }
 
-sub true  { Underscore::_True->new }
-sub false { Underscore::_False->new }
+sub true  { UnderscoreJS::_True->new }
+sub false { UnderscoreJS::_False->new }
 
 sub forEach {&each}
 
@@ -1015,8 +1015,8 @@ sub is_boolean {
 
     return 1
       if Scalar::Util::blessed($object)
-          && (   $object->isa('Underscore::_True')
-              || $object->isa('Underscore::_False'));
+          && (   $object->isa('UnderscoreJS::_True')
+              || $object->isa('UnderscoreJS::_False'));
 
     return 0;
 }
@@ -1050,7 +1050,7 @@ sub _finalize {
       :                  $_[0];
 }
 
-package Underscore::_True;
+package UnderscoreJS::_True;
 
 use overload '""'   => sub {'true'}, fallback => 1;
 use overload 'bool' => sub {1},      fallback => 1;
@@ -1059,7 +1059,7 @@ use overload '==' => sub { $_[1] == 1 ? 1 : 0; }, fallback => 1;
 
 sub new { bless {}, $_[0] }
 
-package Underscore::_False;
+package UnderscoreJS::_False;
 
 use overload '""'   => sub {'false'}, fallback => 1;
 use overload 'bool' => sub {0},       fallback => 1;
@@ -1073,17 +1073,17 @@ __END__
 
 =head1 NAME
 
-Underscore - Perl port of Underscore.js
+UnderscoreJS - Perl port of Underscore.js
 
 =head1 SYNOPSIS
 
-    use Underscore;
+    use UnderscoreJS;
 
     _([3, 2, 1])->sort;
 
 =head1 DESCRIPTION
 
-L<Underscore> Perl is a clone of a popular JavaScript library
+L<UnderscoreJS> Perl is a clone of a popular JavaScript library
 L<http://github.com/documentcloud/underscore|Underscore.js>. Why? Because Perl
 is awesome. And because we can!
 

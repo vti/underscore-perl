@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Spec;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'uniqueId' => sub {
     it 'can generate a globally-unique stream of ids' => sub {

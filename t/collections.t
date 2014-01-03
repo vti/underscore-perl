@@ -4,7 +4,7 @@ use warnings;
 use Test::Spec;
 use Try::Tiny;
 
-use Underscore;
+use UnderscoreJS;
 
 describe 'Each iterators' => sub {
     they "provide value and iteration count" => sub {
