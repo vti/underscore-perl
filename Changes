@@ -2,6 +2,10 @@ Revision history for perl module Underscore
 
 {{$NEXT}}
 
+0.04 2014-01-03T10:28:48Z
+
+ - Release fixes
+
 0.03 2013-07-17T15:09:49Z
 
  - Add test for count_by alias
