@@ -2,6 +2,10 @@ Revision history for perl module Underscore
 
 {{$NEXT}}
 
+0.06 2014-01-05T07:18:24Z
+
+ - Do not rely on hash ordering in tests
+
 0.05 2014-01-03T10:44:45Z
 
  - Rename to UnderscoreJS
