@@ -33,7 +33,7 @@ describe 'keys' => sub {
 
 describe 'values' => sub {
     it 'can extract the values from an object' => sub {
-        is_deeply(_->values({one => 1, two => 2}), [1, 2]);
+        is_deeply([sort @{_->values({one => 1, two => 2})}], [1, 2]);
     };
 };
 
