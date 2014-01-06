@@ -7,26 +7,26 @@ use UnderscoreJS;
 
 describe 'keys' => sub {
     it 'can extract the keys from an object' => sub {
-        is_deeply(_->keys({one => 1, two => 2}), ['one', 'two'])
+        is_deeply([sort @{_->keys({one => 1, two => 2})}], ['one', 'two']);
     };
 
     it 'throws an error for undefined values' => sub {
-        eval {_->keys(undef)};
+        eval { _->keys(undef) };
         ok $@;
     };
 
     it 'throws an error for number primitives' => sub {
-        eval {_->keys(1)};
+        eval { _->keys(1) };
         ok $@;
     };
 
     it 'throws an error for string primitives' => sub {
-        eval {_->keys('foo')};
+        eval { _->keys('foo') };
         ok $@;
     };
 
     it 'throws an error for boolean primitives' => sub {
-        eval {_->keys(_->true)};
+        eval { _->keys(_->true) };
         ok $@;
     };
 };
@@ -39,42 +39,54 @@ describe 'values' => sub {
 
 describe 'pairs' => sub {
     it 'can convert a hash into pairs' => sub {
-        is_deeply(_->pairs({one => 1, two => 2}), [['one', 1], ['two', 2]]);
+        is_deeply(
+            [sort { $a->[0] cmp $b->[0] } @{_->pairs({one => 1, two => 2})}],
+            [['one', 1], ['two', 2]]);
     };
 };
 
 describe 'pick' => sub {
     it 'can restrict properties to those named' => sub {
-        is_deeply(_->pick({a=>1, b=>2, c=>3}, 'a', 'c'), {a=>1, c=>3});
+        is_deeply(_->pick({a => 1, b => 2, c => 3}, 'a', 'c'),
+            {a => 1, c => 3});
     };
     it 'can restrict properties to those named in an array' => sub {
-        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a', 'c']), {a=>1, c=>3});
+        is_deeply(_->pick({a => 1, b => 2, c => 3}, ['a', 'c']),
+            {a => 1, c => 3});
     };
     it 'can restrict properties to those named in a mix' => sub {
-        is_deeply(_->pick({a=>1, b=>2, c=>3}, ['a'], 'c'), {a=>1, c=>3});
+        is_deeply(_->pick({a => 1, b => 2, c => 3}, ['a'], 'c'),
+            {a => 1, c => 3});
     };
 };
 
 describe 'omit' => sub {
     it 'can omit a single key' => sub {
-        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b'), {a=>1, c=>3});
+        is_deeply(_->omit({a => 1, b => 2, c => 3}, 'b'), {a => 1, c => 3});
     };
     it 'can omit many keys' => sub {
-        is_deeply(_->omit({a=>1, b=>2, c=>3}, 'b', 'a'), {c=>3});
+        is_deeply(_->omit({a => 1, b => 2, c => 3}, 'b', 'a'), {c => 3});
     };
     it 'can omit many keys in an array' => sub {
-        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b', 'a']), {c=>3});
+        is_deeply(_->omit({a => 1, b => 2, c => 3}, ['b', 'a']), {c => 3});
     };
     it 'can omit many keys in a mix' => sub {
-        is_deeply(_->omit({a=>1, b=>2, c=>3}, ['b'], 'a'), {c=>3});
+        is_deeply(_->omit({a => 1, b => 2, c => 3}, ['b'], 'a'), {c => 3});
     };
 };
 
 describe 'functions' => sub {
     it 'can grab the function names of any passed-in object' => sub {
-        my $cb = sub {};
-        my $result = _->functions({a => 'dash', b => sub {}, c => qr//, d => sub {}});
-        is_deeply($result, ['b', 'd']);
+        my $cb = sub { };
+        my $result = _->functions(
+            {
+                a => 'dash',
+                b => sub { },
+                c => qr//,
+                d => sub { }
+            }
+        );
+        is_deeply([sort @$result], ['b', 'd']);
     };
 };
 
@@ -102,7 +114,7 @@ describe 'extend' => sub {
     };
 
     it 'does not copy undefined values' => sub {
-        is_deeply(_->extend({},  {a => 0, b => undef}), {a => 0});
+        is_deeply(_->extend({}, {a => 0, b => undef}), {a => 0});
     };
 };
 
@@ -148,13 +160,13 @@ describe 'clone' => sub {
 
 # TODO
 describe 'isEqual' => sub {
-   it 'must compare object deeply' => sub {
-       my $moe   = {name => 'moe', lucky => [13, 27, 34]};
-       my $clone = {name => 'moe', lucky => [13, 27, 34]};
-       ok($moe ne $clone);
-       ok(_->isEqual($moe, $clone));
-       ok(_($moe)->isEqual($clone));
-   };
+    it 'must compare object deeply' => sub {
+        my $moe   = {name => 'moe', lucky => [13, 27, 34]};
+        my $clone = {name => 'moe', lucky => [13, 27, 34]};
+        ok($moe ne $clone);
+        ok(_->isEqual($moe, $clone));
+        ok(_($moe)->isEqual($clone));
+    };
 };
 
 describe 'isEmpty' => sub {
@@ -208,7 +220,7 @@ describe 'isFunction' => sub {
     it 'must check if value is a function' => sub {
         ok(!_->isFunction([1, 2, 3]));
         ok(!_->isFunction('moe'));
-        ok(_->isFunction(sub {}));
+        ok(_->isFunction(sub { }));
     };
 };
 
@@ -221,11 +233,11 @@ describe 'isRegExp' => sub {
 
 describe 'isUndefined' => sub {
     it 'must check if value is undefined' => sub {
-        ok(!_->isUndefined(1), 'numbers are defined');
+        ok(!_->isUndefined(1),        'numbers are defined');
         ok(!_->isUndefined(_->false), 'false is defined');
-        ok(!_->isUndefined(0), '0 is defined');
-        ok(_->isUndefined(), 'nothing is undefined');
-        ok(_->isUndefined(undef), 'undefined is undefined');
+        ok(!_->isUndefined(0),        '0 is defined');
+        ok(_->isUndefined(),          'nothing is undefined');
+        ok(_->isUndefined(undef),     'undefined is undefined');
     };
 };
 
