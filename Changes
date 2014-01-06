@@ -2,6 +2,10 @@ Revision history for perl module Underscore
 
 {{$NEXT}}
 
+0.07 2014-01-06T08:38:55Z
+
+ - Fix hash ordering in tests (AGAIN)
+
 0.06 2014-01-05T07:18:24Z
 
  - Do not rely on hash ordering in tests
